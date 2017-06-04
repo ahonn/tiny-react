@@ -250,7 +250,7 @@ babel-eslint@^6.1.0:
     lodash.assign "^4.0.0"
     lodash.pickby "^4.0.0"
 
-babel-generator@^6.21.0, babel-generator@^6.24.1:
+babel-generator@^6.24.1:
   version "6.24.1"
   resolved "http://r.cnpmjs.org/babel-generator/download/babel-generator-6.24.1.tgz#e715f486c58ded25649d888944d52aa07c5d9497"
   dependencies:
@@ -362,16 +362,11 @@ babel-plugin-eval@^1.0.1:
   version "1.0.1"
   resolved "http://r.cnpmjs.org/babel-plugin-eval/download/babel-plugin-eval-1.0.1.tgz#a2faed25ce6be69ade4bfec263f70169195950da"
 
-babel-plugin-flow-runtime@^0.11.1:
-  version "0.11.1"
-  resolved "http://r.cnpmjs.org/babel-plugin-flow-runtime/download/babel-plugin-flow-runtime-0.11.1.tgz#5bccef681c75a126d6c81db3560dabf075e19d22"
+babel-plugin-external-helpers@^6.22.0:
+  version "6.22.0"
+  resolved "http://r.cnpmjs.org/babel-plugin-external-helpers/download/babel-plugin-external-helpers-6.22.0.tgz#2285f48b02bd5dede85175caf8c62e86adccefa1"
   dependencies:
-    babel-generator "^6.21.0"
-    babel-traverse "^6.20.0"
-    babel-types "^6.16.0"
-    babylon "^6.16.1"
-    camelcase "^3.0.0"
-    flow-config-parser "^0.3.0"
+    babel-runtime "^6.22.0"
 
 babel-plugin-inline-environment-variables@^1.0.1:
   version "1.0.1"
@@ -670,7 +665,7 @@ babel-template@^6.24.1:
     babylon "^6.11.0"
     lodash "^4.2.0"
 
-babel-traverse@^6.0.20, babel-traverse@^6.20.0, babel-traverse@^6.24.1:
+babel-traverse@^6.0.20, babel-traverse@^6.24.1:
   version "6.24.1"
   resolved "http://r.cnpmjs.org/babel-traverse/download/babel-traverse-6.24.1.tgz#ab36673fd356f9a0948659e7b338d5feadb31695"
   dependencies:
@@ -684,7 +679,7 @@ babel-traverse@^6.0.20, babel-traverse@^6.20.0, babel-traverse@^6.24.1:
     invariant "^2.2.0"
     lodash "^4.2.0"
 
-babel-types@^6.0.19, babel-types@^6.16.0, babel-types@^6.19.0, babel-types@^6.24.1:
+babel-types@^6.0.19, babel-types@^6.19.0, babel-types@^6.24.1:
   version "6.24.1"
   resolved "http://r.cnpmjs.org/babel-types/download/babel-types-6.24.1.tgz#a136879dc15b3606bda0d90c1fc74304c2ff0975"
   dependencies:
@@ -714,7 +709,7 @@ babylon@^5.8.38:
   version "5.8.38"
   resolved "http://r.cnpmjs.org/babylon/download/babylon-5.8.38.tgz#ec9b120b11bf6ccd4173a18bf217e60b79859ffd"
 
-babylon@^6.0.18, babylon@^6.11.0, babylon@^6.15.0, babylon@^6.16.1:
+babylon@^6.0.18, babylon@^6.11.0, babylon@^6.15.0:
   version "6.17.2"
   resolved "http://r.cnpmjs.org/babylon/download/babylon-6.17.2.tgz#201d25ef5f892c41bae49488b08db0dd476e9f5c"
 
@@ -780,10 +775,6 @@ callsites@^0.2.0:
 camelcase@^1.2.1:
   version "1.2.1"
   resolved "http://r.cnpmjs.org/camelcase/download/camelcase-1.2.1.tgz#9bb5304d2e0b56698b2c758b08a3eaa9daa58a39"
-
-camelcase@^3.0.0:
-  version "3.0.0"
-  resolved "http://r.cnpmjs.org/camelcase/download/camelcase-3.0.0.tgz#32fc4b9fcdaf845fcdf7e73bb97cac2261f0ab0a"
 
 caseless@~0.12.0:
   version "0.12.0"
@@ -1083,12 +1074,6 @@ escope@^3.6.0:
     esrecurse "^4.1.0"
     estraverse "^4.1.1"
 
-eslint-plugin-flowtype@^2.34.0:
-  version "2.34.0"
-  resolved "http://r.cnpmjs.org/eslint-plugin-flowtype/download/eslint-plugin-flowtype-2.34.0.tgz#b9875f314652e5081623c9d2b18a346bbb759c09"
-  dependencies:
-    lodash "^4.15.0"
-
 eslint@^3.19.0:
   version "3.19.0"
   resolved "http://r.cnpmjs.org/eslint/download/eslint-3.19.0.tgz#c8fc6201c7f40dd08941b87c085767386a679acc"
@@ -1254,21 +1239,6 @@ flat-cache@^1.2.1:
     del "^2.0.2"
     graceful-fs "^4.1.2"
     write "^0.2.1"
-
-flow-bin@^0.47.0:
-  version "0.47.0"
-  resolved "http://r.cnpmjs.org/flow-bin/download/flow-bin-0.47.0.tgz#a2a08ab3e0d1f1cb57d17e27b30b118b62fda367"
-
-flow-config-parser@^0.3.0:
-  version "0.3.0"
-  resolved "http://r.cnpmjs.org/flow-config-parser/download/flow-config-parser-0.3.0.tgz#704916efba88cd2518ab4d8f933079571276138f"
-
-flow-remove-types@^1.1.0:
-  version "1.2.1"
-  resolved "http://r.cnpmjs.org/flow-remove-types/download/flow-remove-types-1.2.1.tgz#58e261bf8b842bd234c86cafb982a1213aff0edb"
-  dependencies:
-    babylon "^6.15.0"
-    vlq "^0.2.1"
 
 for-in@^1.0.1:
   version "1.0.2"
@@ -1767,7 +1737,7 @@ lodash@^3.10.0, lodash@^3.2.0, lodash@^3.9.3:
   version "3.10.1"
   resolved "http://r.cnpmjs.org/lodash/download/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
 
-lodash@^4.0.0, lodash@^4.15.0, lodash@^4.2.0, lodash@^4.3.0:
+lodash@^4.0.0, lodash@^4.2.0, lodash@^4.3.0:
   version "4.17.4"
   resolved "http://r.cnpmjs.org/lodash/download/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -2266,14 +2236,7 @@ rollup-plugin-babel@^2.7.1:
     object-assign "^4.1.0"
     rollup-pluginutils "^1.5.0"
 
-rollup-plugin-flow@^1.1.1:
-  version "1.1.1"
-  resolved "http://r.cnpmjs.org/rollup-plugin-flow/download/rollup-plugin-flow-1.1.1.tgz#6ce568f1dd559666b77ab76b4bae251407528db6"
-  dependencies:
-    flow-remove-types "^1.1.0"
-    rollup-pluginutils "^1.5.1"
-
-rollup-pluginutils@^1.5.0, rollup-pluginutils@^1.5.1:
+rollup-pluginutils@^1.5.0:
   version "1.5.2"
   resolved "http://r.cnpmjs.org/rollup-pluginutils/download/rollup-pluginutils-1.5.2.tgz#1e156e778f94b7255bfa1b3d0178be8f5c552408"
   dependencies:
@@ -2565,10 +2528,6 @@ verror@1.3.6:
   resolved "http://r.cnpmjs.org/verror/download/verror-1.3.6.tgz#cff5df12946d297d2baaefaa2689e25be01c005c"
   dependencies:
     extsprintf "1.0.2"
-
-vlq@^0.2.1:
-  version "0.2.2"
-  resolved "http://r.cnpmjs.org/vlq/download/vlq-0.2.2.tgz#e316d5257b40b86bb43cb8d5fea5d7f54d6b0ca1"
 
 wide-align@^1.1.0:
   version "1.1.2"

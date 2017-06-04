@@ -20,6 +20,7 @@
     "babel": "^5.8.23",
     "babel-core": "^5.8.24",
     "babel-eslint": "^6.1.0",
+    "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-runtime": "^5.8.24",
     "eslint": "^3.19.0",

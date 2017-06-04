@@ -1,9 +1,9 @@
-export function createVNode(type, props, key, ref) {
-  let vNode = {
-    type,
-    props,
-    key,
-    ref
+export class VElement {
+  constructor(type, props, key, ref) {
+    this.type = type
+    this.props = props
+    this.key = key
+    this.ref = ref
   }
-  return vNode
 }
+

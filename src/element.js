@@ -1,4 +1,4 @@
-import { createVNode } from './virtual-dom'
+import { VElement } from './virtual-dom'
 
 export function createElement(type, config, ...children) {
   let props = {}
@@ -22,7 +22,14 @@ export function createElement(type, config, ...children) {
     props.children = children
   }
 
-  // TODO: add defaultProps support
+  if (type && type.defaultProps) {
+    let defaultProps = type.defaultProps
+    for (let propsName in defaultProps) {
+      if (props[propsName] === undefined) {
+        props[propsName] = defaultProps[propsName]
+      }
+    }
+  }
 
-  return createVNode(type, props, key, ref)
+  return new VElement(type, props, key, ref)
 }
