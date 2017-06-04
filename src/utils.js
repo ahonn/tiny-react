@@ -4,3 +4,4 @@ export function extend(obj, props) {
   }
   return obj
 }
+
