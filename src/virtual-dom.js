@@ -7,6 +7,16 @@ export class VElement {
   }
 }
 
+export class VEmptyComponent {
+  constructor() {
+    this._element = null
+  }
+
+  mountComponent() {
+    return ''
+  }
+}
+
 export class VTextComponent {
   constructor(text) {
     this._element = text
@@ -44,13 +54,33 @@ export class VDomComponent {
       ret += `${propsName}=${propsValue}`
     }
 
-    let children = ''
+    let tagContent = ''
     if (props.children) {
       // TODO: render children
       // children = this._mountChildren(props.children)
     }
-    ret += children
+    ret += tagContent
     ret += `</${this._tag}>`
     return ret
   }
+}
+
+export function instantiateVComponent(element) {
+  let instance = null
+  if (element === null || element === false) {
+    instance = new VEmptyComponent()
+  }
+  
+  if (typeof element === 'object') {
+    let type = element.type
+    if (typeof type === 'string') {
+      instance = new VDomComponent(element)
+    } else {
+      // TODO: add VCompositeComponent
+      // instance = new VCompositeComponent(element)
+    }
+  } else if (typeof element === 'string' || typeof element === 'number') {
+    instance = new VTextComponent(element)
+  }
+  return instance
 }
