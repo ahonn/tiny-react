@@ -40,32 +40,32 @@ var createClass = function () {
   };
 }();
 
-var VEmptyComponent = function () {
-  function VEmptyComponent() {
-    classCallCheck(this, VEmptyComponent);
+var SvarEmptyComponent = function () {
+  function SvarEmptyComponent() {
+    classCallCheck(this, SvarEmptyComponent);
 
     this._element = null;
   }
 
-  createClass(VEmptyComponent, [{
+  createClass(SvarEmptyComponent, [{
     key: 'mountComponent',
     value: function mountComponent() {
       return '';
     }
   }]);
-  return VEmptyComponent;
+  return SvarEmptyComponent;
 }();
 
-var VTextComponent = function () {
-  function VTextComponent(text) {
-    classCallCheck(this, VTextComponent);
+var SvarTextComponent = function () {
+  function SvarTextComponent(text) {
+    classCallCheck(this, SvarTextComponent);
 
     this._element = text;
     this._stringText = '' + text;
     this._rootID = 0;
   }
 
-  createClass(VTextComponent, [{
+  createClass(SvarTextComponent, [{
     key: 'mountComponent',
     value: function mountComponent(rootID) {
       this._rootID = rootID;
@@ -74,12 +74,12 @@ var VTextComponent = function () {
       return openingComment + this._stringText + closingComment;
     }
   }]);
-  return VTextComponent;
+  return SvarTextComponent;
 }();
 
-var VDomComponent = function () {
-  function VDomComponent(element) {
-    classCallCheck(this, VDomComponent);
+var SvarDomComponent = function () {
+  function SvarDomComponent(element) {
+    classCallCheck(this, SvarDomComponent);
 
     var tag = element.type;
 
@@ -88,12 +88,23 @@ var VDomComponent = function () {
     this._rootID = 0;
   }
 
-  createClass(VDomComponent, [{
+  createClass(SvarDomComponent, [{
+    key: '_mountChildren',
+    value: function _mountChildren(children) {
+      var result = '';
+      for (var index in children) {
+        var child = children[index];
+        var childrenComponent = instantiateSvarComponent(child);
+        result += childrenComponent.mountComponent(index);
+      }
+      return result;
+    }
+  }, {
     key: 'mountComponent',
     value: function mountComponent(rootID) {
       this._rootID = rootID;
       if (typeof this._element.type !== 'string') {
-        throw new Error('VDOMComponent\'s VElement.type must be string');
+        throw new Error('SvarDOMComponent\'s SvarElement.type must be string');
       }
 
       var ret = '<' + this._tag + ' ';
@@ -105,34 +116,38 @@ var VDomComponent = function () {
         var propsValue = props[propsName];
         ret += propsName + '=' + propsValue;
       }
+      ret += '>';
 
       var tagContent = '';
       if (props.children) {
-        // TODO: render children
-        // children = this._mountChildren(props.children)
+        if (props.children.length === 1 && typeof props.children[0] === 'string') {
+          tagContent += props.children[0];
+        } else {
+          tagContent = this._mountChildren(props.children);
+        }
       }
       ret += tagContent;
       ret += '</' + this._tag + '>';
       return ret;
     }
   }]);
-  return VDomComponent;
+  return SvarDomComponent;
 }();
 
-var VCompositeComponent = function () {
-  function VCompositeComponent(element) {
-    classCallCheck(this, VCompositeComponent);
+var SvarCompositeComponent = function () {
+  function SvarCompositeComponent(element) {
+    classCallCheck(this, SvarCompositeComponent);
 
     this._element = element;
     this._rootId = 0;
   }
 
-  createClass(VCompositeComponent, [{
+  createClass(SvarCompositeComponent, [{
     key: 'mountComponent',
     value: function mountComponent(rootID) {
       this._rootId = rootID;
       if (typeof this._element.type !== 'function') {
-        throw new Error('VCompositeComponent\'s VElement.type must be function');
+        throw new Error('SvarCompositeComponent\'s SvarElement.type must be function');
       }
 
       var Component = this._element.type;
@@ -140,39 +155,38 @@ var VCompositeComponent = function () {
       var instance = new Component(props);
 
       var renderedElement = instance.render();
-      var renderedComponent = instantiateVComponent(renderedElement);
+      var renderedComponent = instantiateSvarComponent(renderedElement);
       var renderedResult = renderedComponent.mountComponent(rootID);
       return renderedResult;
     }
   }]);
-  return VCompositeComponent;
+  return SvarCompositeComponent;
 }();
 
-var VElement = function VElement(type, props, key, ref) {
-  classCallCheck(this, VElement);
+var SvarElement = function SvarElement(type, props, key, ref) {
+  classCallCheck(this, SvarElement);
 
   this.type = type;
   this.props = props;
   this.key = key;
   this.ref = ref;
-  console.log(props);
 };
 
-function instantiateVComponent(element) {
+function instantiateSvarComponent(element) {
   var instance = null;
   if (element === null || element === false) {
-    instance = new VEmptyComponent();
+    instance = new SvarEmptyComponent();
   }
 
   if ((typeof element === 'undefined' ? 'undefined' : _typeof(element)) === 'object') {
     var type = element.type;
     if (typeof type === 'string') {
-      instance = new VDomComponent(element);
+      instance = new SvarDomComponent(element);
     } else {
-      instance = new VCompositeComponent(element);
+      instance = new SvarCompositeComponent(element);
     }
   } else if (typeof element === 'string' || typeof element === 'number') {
-    instance = new VTextComponent(element);
+    instance = new SvarTextComponent(element);
   }
   return instance;
 }
@@ -194,7 +208,11 @@ function createElement(type, config) {
     key = config.key === undefined ? null : '' + config.key;
 
     for (var propsName in config) {
-      if (config.hasOwnProperty(propsName) || !RESERVED_PROPS.hasOwnProperty(propsName)) {
+      if (RESERVED_PROPS.hasOwnProperty(propsName)) {
+        continue;
+      }
+
+      if (config.hasOwnProperty(propsName)) {
         props[propsName] = config[propsName];
       }
     }
@@ -215,7 +233,7 @@ function createElement(type, config) {
     }
   }
 
-  return new VElement(type, props, key, ref);
+  return new SvarElement(type, props, key, ref);
 }
 
 function extend(obj, props) {
@@ -264,16 +282,19 @@ var Component = function () {
 
 function render(element, container) {
   var rootID = 0;
-  var mainComponent = instantiateVComponent(element);
+  var mainComponent = instantiateSvarComponent(element);
   var containerContent = mainComponent.mountComponent(rootID);
 
   container.innerHTML = containerContent;
 }
 
-var index = {
+var Svar = {
   createElement: createElement,
   Component: Component,
   render: render
 };
+if (window) {
+  window['Svar'] = Svar;
+}
 
-module.exports = index;
+module.exports = Svar;

@@ -10,16 +10,16 @@ export default {
   ],
   targets: [
     {
-      dest: 'dist/tiny-react.common.js',
+      dest: 'dist/svar.common.js',
       format: 'cjs'
     },
     {
-      dest: 'dist/tiny-react.js',
+      dest: 'dist/svar.js',
       format: 'umd',
-      moduleName: 'TintReact'
+      moduleName: 'svar'
     },
     {
-      dest: 'example/simple/src/tiny-react.js',
+      dest: 'example/simple/src/svar.js',
       format: 'cjs'
     }
   ]

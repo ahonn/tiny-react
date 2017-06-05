@@ -1,2 +1,2 @@
-# tiny-react
-a tiny react-like library
+# Svar
+a tiny react-like library, just for fun

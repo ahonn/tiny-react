@@ -1,4 +1,4 @@
-import { VElement } from './virtual-dom'
+import { SvarElement } from './virtual-dom'
 
 const RESERVED_PROPS = {
   ref: true,
@@ -17,7 +17,11 @@ export function createElement(type, config, ...children) {
     key = config.key === undefined ? null : '' + config.key
 
     for (let propsName in config) {
-      if (config.hasOwnProperty(propsName) || !RESERVED_PROPS.hasOwnProperty(propsName)) {
+      if (RESERVED_PROPS.hasOwnProperty(propsName)) {
+        continue
+      }
+
+      if (config.hasOwnProperty(propsName)) {
         props[propsName] = config[propsName]
       }
     }
@@ -34,5 +38,5 @@ export function createElement(type, config, ...children) {
     }
   }
 
-  return new VElement(type, props, key, ref)
+  return new SvarElement(type, props, key, ref)
 }

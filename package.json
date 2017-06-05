@@ -1,8 +1,8 @@
 {
-  "name": "tiny-react",
+  "name": "Svar",
   "version": "1.0.0",
-  "description": "a tiny react-like library",
-  "main": "dist/tiny-react.common.js",
+  "description": "Svar is a tiny react-like library, just for fun",
+  "main": "dist/svar.common.js",
   "scripts": {
     "build": "rollup -c",
     "build:watch": "rollup -c -w",

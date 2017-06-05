@@ -1,5 +1,5 @@
 
-class VEmptyComponent {
+class SvarEmptyComponent {
   constructor() {
     this._element = null
   }
@@ -9,7 +9,7 @@ class VEmptyComponent {
   }
 }
 
-class VTextComponent {
+class SvarTextComponent {
   constructor(text) {
     this._element = text
     this._stringText = '' + text
@@ -24,7 +24,7 @@ class VTextComponent {
   }
 }
 
-class VDomComponent {
+class SvarDomComponent {
   constructor(element) {
     let tag = element.type
 
@@ -33,10 +33,20 @@ class VDomComponent {
     this._rootID = 0
   }
 
+  _mountChildren(children) {
+    let result = ''
+    for (let index in children) {
+      const child = children[index]
+      const childrenComponent = instantiateSvarComponent(child)
+      result += childrenComponent.mountComponent(index)
+    }
+    return result
+  }
+
   mountComponent(rootID) {
     this._rootID = rootID
     if (typeof this._element.type !== 'string') {
-      throw new Error('VDOMComponent\'s VElement.type must be string')
+      throw new Error('SvarDOMComponent\'s SvarElement.type must be string')
     }
 
     let ret = `<${this._tag} `
@@ -48,11 +58,16 @@ class VDomComponent {
       let propsValue = props[propsName]
       ret += `${propsName}=${propsValue}`
     }
+    ret += '>'
 
     let tagContent = ''
     if (props.children) {
-      // TODO: render children
-      // children = this._mountChildren(props.children)
+      if (props.children.length === 1 && 
+          typeof props.children[0] === 'string') {
+        tagContent += props.children[0]
+      } else {
+        tagContent = this._mountChildren(props.children)
+      }
     }
     ret += tagContent
     ret += `</${this._tag}>`
@@ -60,7 +75,7 @@ class VDomComponent {
   }
 }
 
-class VCompositeComponent {
+class SvarCompositeComponent {
   constructor(element) {
     this._element = element
     this._rootId = 0
@@ -69,7 +84,7 @@ class VCompositeComponent {
   mountComponent(rootID) {
     this._rootId = rootID
     if (typeof this._element.type !== 'function') {
-      throw new Error('VCompositeComponent\'s VElement.type must be function')
+      throw new Error('SvarCompositeComponent\'s SvarElement.type must be function')
     }
 
     const Component = this._element.type
@@ -77,37 +92,36 @@ class VCompositeComponent {
     const instance = new Component(props)
 
     const renderedElement = instance.render()
-    const renderedComponent = instantiateVComponent(renderedElement)
+    const renderedComponent = instantiateSvarComponent(renderedElement)
     const renderedResult = renderedComponent.mountComponent(rootID)
     return renderedResult
   }
 }
 
-export class VElement {
+export class SvarElement {
   constructor(type, props, key, ref) {
     this.type = type
     this.props = props
     this.key = key
     this.ref = ref
-    console.log(props)
   }
 }
 
-export function instantiateVComponent(element) {
+export function instantiateSvarComponent(element) {
   let instance = null
   if (element === null || element === false) {
-    instance = new VEmptyComponent()
+    instance = new SvarEmptyComponent()
   }
   
   if (typeof element === 'object') {
     let type = element.type
     if (typeof type === 'string') {
-      instance = new VDomComponent(element)
+      instance = new SvarDomComponent(element)
     } else {
-      instance = new VCompositeComponent(element)
+      instance = new SvarCompositeComponent(element)
     }
   } else if (typeof element === 'string' || typeof element === 'number') {
-    instance = new VTextComponent(element)
+    instance = new SvarTextComponent(element)
   }
   return instance
 }
