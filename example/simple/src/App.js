@@ -1,4 +1,4 @@
-import React, { Component } from './svar'
+import React, { Component } from './tiny-react'
 
 class App extends Component {
   render() {
