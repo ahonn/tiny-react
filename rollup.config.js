@@ -10,16 +10,16 @@ export default {
   ],
   targets: [
     {
-      dest: 'dist/svar.common.js',
+      dest: 'dist/tiny-react.common.js',
       format: 'cjs'
     },
     {
-      dest: 'dist/svar.js',
+      dest: 'dist/tiny-react.js',
       format: 'umd',
       moduleName: 'svar'
     },
     {
-      dest: 'example/simple/src/svar.js',
+      dest: 'example/simple/src/tiny-react.js',
       format: 'cjs'
     }
   ]
