@@ -40,32 +40,32 @@ var createClass = function () {
   };
 }();
 
-var EmptyComponent = function () {
-  function EmptyComponent() {
-    classCallCheck(this, EmptyComponent);
+var ReactDOMEmptyComponent = function () {
+  function ReactDOMEmptyComponent() {
+    classCallCheck(this, ReactDOMEmptyComponent);
 
     this._element = null;
   }
 
-  createClass(EmptyComponent, [{
+  createClass(ReactDOMEmptyComponent, [{
     key: 'mountComponent',
     value: function mountComponent() {
       return '';
     }
   }]);
-  return EmptyComponent;
+  return ReactDOMEmptyComponent;
 }();
 
-var TextComponent = function () {
-  function TextComponent(text) {
-    classCallCheck(this, TextComponent);
+var ReactDOMTextComponent = function () {
+  function ReactDOMTextComponent(text) {
+    classCallCheck(this, ReactDOMTextComponent);
 
     this._element = text;
     this._stringText = '' + text;
     this._rootID = 0;
   }
 
-  createClass(TextComponent, [{
+  createClass(ReactDOMTextComponent, [{
     key: 'mountComponent',
     value: function mountComponent(rootID) {
       this._rootID = rootID;
@@ -74,12 +74,12 @@ var TextComponent = function () {
       return openingComment + this._stringText + closingComment;
     }
   }]);
-  return TextComponent;
+  return ReactDOMTextComponent;
 }();
 
-var DomComponent = function () {
-  function DomComponent(element) {
-    classCallCheck(this, DomComponent);
+var ReactDomComponent = function () {
+  function ReactDomComponent(element) {
+    classCallCheck(this, ReactDomComponent);
 
     var tag = element.type;
 
@@ -88,13 +88,13 @@ var DomComponent = function () {
     this._rootID = 0;
   }
 
-  createClass(DomComponent, [{
+  createClass(ReactDomComponent, [{
     key: '_mountChildren',
     value: function _mountChildren(children) {
       var result = '';
       for (var index in children) {
         var child = children[index];
-        var childrenComponent = instantiateComponent(child);
+        var childrenComponent = instantiateReactComponent(child);
         result += childrenComponent.mountComponent(index);
       }
       return result;
@@ -131,18 +131,18 @@ var DomComponent = function () {
       return ret;
     }
   }]);
-  return DomComponent;
+  return ReactDomComponent;
 }();
 
-var CompositeComponent = function () {
-  function CompositeComponent(element) {
-    classCallCheck(this, CompositeComponent);
+var ReactCompositeComponent = function () {
+  function ReactCompositeComponent(element) {
+    classCallCheck(this, ReactCompositeComponent);
 
     this._element = element;
     this._rootId = 0;
   }
 
-  createClass(CompositeComponent, [{
+  createClass(ReactCompositeComponent, [{
     key: 'mountComponent',
     value: function mountComponent(rootID) {
       this._rootId = rootID;
@@ -155,16 +155,16 @@ var CompositeComponent = function () {
       var instance = new Component(props);
 
       var renderedElement = instance.render();
-      var renderedComponent = instantiateComponent(renderedElement);
+      var renderedComponent = instantiateReactComponent(renderedElement);
       var renderedResult = renderedComponent.mountComponent(rootID);
       return renderedResult;
     }
   }]);
-  return CompositeComponent;
+  return ReactCompositeComponent;
 }();
 
-var Element = function Element(type, props, key, ref) {
-  classCallCheck(this, Element);
+var ReactElement = function ReactElement(type, props, key, ref) {
+  classCallCheck(this, ReactElement);
 
   this.type = type;
   this.props = props;
@@ -172,21 +172,21 @@ var Element = function Element(type, props, key, ref) {
   this.ref = ref;
 };
 
-function instantiateComponent(element) {
+function instantiateReactComponent(element) {
   var instance = null;
   if (element === null || element === false) {
-    instance = new EmptyComponent();
+    instance = new ReactDOMEmptyComponent();
   }
 
   if ((typeof element === 'undefined' ? 'undefined' : _typeof(element)) === 'object') {
     var type = element.type;
     if (typeof type === 'string') {
-      instance = new DomComponent(element);
+      instance = new ReactDomComponent(element);
     } else {
-      instance = new CompositeComponent(element);
+      instance = new ReactCompositeComponent(element);
     }
   } else if (typeof element === 'string' || typeof element === 'number') {
-    instance = new TextComponent(element);
+    instance = new ReactDOMTextComponent(element);
   }
   return instance;
 }
@@ -233,7 +233,7 @@ function createElement(type, config) {
     }
   }
 
-  return new Element(type, props, key, ref);
+  return new ReactElement(type, props, key, ref);
 }
 
 function extend(obj, props) {
@@ -282,19 +282,19 @@ var Component = function () {
 
 function render(element, container) {
   var rootID = 0;
-  var mainComponent = instantiateComponent(element);
+  var mainComponent = instantiateReactComponent(element);
   var containerContent = mainComponent.mountComponent(rootID);
 
   container.innerHTML = containerContent;
 }
 
-var Svar = {
+var React = {
   createElement: createElement,
   Component: Component,
   render: render
 };
 if (window) {
-  window['Svar'] = Svar;
+  window['React'] = React;
 }
 
-module.exports = Svar;
+module.exports = React;

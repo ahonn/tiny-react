@@ -1,4 +1,4 @@
-class EmptyComponent {
+class ReactDOMEmptyComponent {
   constructor() {
     this._element = null
   }
@@ -8,7 +8,7 @@ class EmptyComponent {
   }
 }
 
-class TextComponent {
+class ReactDOMTextComponent {
   constructor(text) {
     this._element = text
     this._stringText = '' + text
@@ -23,7 +23,7 @@ class TextComponent {
   }
 }
 
-class DomComponent {
+class ReactDomComponent {
   constructor(element) {
     let tag = element.type
 
@@ -36,7 +36,7 @@ class DomComponent {
     let result = ''
     for (let index in children) {
       const child = children[index]
-      const childrenComponent = instantiateComponent(child)
+      const childrenComponent = instantiateReactComponent(child)
       result += childrenComponent.mountComponent(index)
     }
     return result
@@ -74,7 +74,7 @@ class DomComponent {
   }
 }
 
-class CompositeComponent {
+class ReactCompositeComponent {
   constructor(element) {
     this._element = element
     this._rootId = 0
@@ -91,13 +91,13 @@ class CompositeComponent {
     const instance = new Component(props)
 
     const renderedElement = instance.render()
-    const renderedComponent = instantiateComponent(renderedElement)
+    const renderedComponent = instantiateReactComponent(renderedElement)
     const renderedResult = renderedComponent.mountComponent(rootID)
     return renderedResult
   }
 }
 
-export class Element {
+export class ReactElement {
   constructor(type, props, key, ref) {
     this.type = type
     this.props = props
@@ -106,21 +106,21 @@ export class Element {
   }
 }
 
-export function instantiateComponent(element) {
+export function instantiateReactComponent(element) {
   let instance = null
   if (element === null || element === false) {
-    instance = new EmptyComponent()
+    instance = new ReactDOMEmptyComponent()
   }
   
   if (typeof element === 'object') {
     let type = element.type
     if (typeof type === 'string') {
-      instance = new DomComponent(element)
+      instance = new ReactDomComponent(element)
     } else {
-      instance = new CompositeComponent(element)
+      instance = new ReactCompositeComponent(element)
     }
   } else if (typeof element === 'string' || typeof element === 'number') {
-    instance = new TextComponent(element)
+    instance = new ReactDOMTextComponent(element)
   }
   return instance
 }

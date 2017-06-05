@@ -2,13 +2,13 @@ import { createElement } from './element'
 import { Component } from './component'
 import { render } from './dom'
 
-const Svar = {
+const React = {
   createElement,
   Component,
   render
 }
 if (window) {
-    window['Svar'] = Svar
+  window['React'] = React
 }
 
-export default Svar
+export default React

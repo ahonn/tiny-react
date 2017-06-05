@@ -1,8 +1,8 @@
-import { instantiateComponent } from './virtual-dom'
+import { instantiateReactComponent } from './virtual-dom'
 
 export function render(element, container) {
   const rootID = 0
-  const mainComponent = instantiateComponent(element)
+  const mainComponent = instantiateReactComponent(element)
   const containerContent = mainComponent.mountComponent(rootID)
 
   container.innerHTML = containerContent

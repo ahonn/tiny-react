@@ -1,4 +1,4 @@
-import { Element } from './virtual-dom'
+import { ReactElement } from './virtual-dom'
 
 const RESERVED_PROPS = {
   ref: true,
@@ -38,5 +38,5 @@ export function createElement(type, config, ...children) {
     }
   }
 
-  return new Element(type, props, key, ref)
+  return new ReactElement(type, props, key, ref)
 }
