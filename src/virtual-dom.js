@@ -1,5 +1,4 @@
-
-class SvarEmptyComponent {
+class EmptyComponent {
   constructor() {
     this._element = null
   }
@@ -9,7 +8,7 @@ class SvarEmptyComponent {
   }
 }
 
-class SvarTextComponent {
+class TextComponent {
   constructor(text) {
     this._element = text
     this._stringText = '' + text
@@ -24,7 +23,7 @@ class SvarTextComponent {
   }
 }
 
-class SvarDomComponent {
+class DomComponent {
   constructor(element) {
     let tag = element.type
 
@@ -37,7 +36,7 @@ class SvarDomComponent {
     let result = ''
     for (let index in children) {
       const child = children[index]
-      const childrenComponent = instantiateSvarComponent(child)
+      const childrenComponent = instantiateComponent(child)
       result += childrenComponent.mountComponent(index)
     }
     return result
@@ -46,7 +45,7 @@ class SvarDomComponent {
   mountComponent(rootID) {
     this._rootID = rootID
     if (typeof this._element.type !== 'string') {
-      throw new Error('SvarDOMComponent\'s SvarElement.type must be string')
+      throw new Error('DOMComponent\'s Element.type must be string')
     }
 
     let ret = `<${this._tag} `
@@ -75,7 +74,7 @@ class SvarDomComponent {
   }
 }
 
-class SvarCompositeComponent {
+class CompositeComponent {
   constructor(element) {
     this._element = element
     this._rootId = 0
@@ -84,7 +83,7 @@ class SvarCompositeComponent {
   mountComponent(rootID) {
     this._rootId = rootID
     if (typeof this._element.type !== 'function') {
-      throw new Error('SvarCompositeComponent\'s SvarElement.type must be function')
+      throw new Error('CompositeComponent\'s Element.type must be function')
     }
 
     const Component = this._element.type
@@ -92,13 +91,13 @@ class SvarCompositeComponent {
     const instance = new Component(props)
 
     const renderedElement = instance.render()
-    const renderedComponent = instantiateSvarComponent(renderedElement)
+    const renderedComponent = instantiateComponent(renderedElement)
     const renderedResult = renderedComponent.mountComponent(rootID)
     return renderedResult
   }
 }
 
-export class SvarElement {
+export class Element {
   constructor(type, props, key, ref) {
     this.type = type
     this.props = props
@@ -107,21 +106,21 @@ export class SvarElement {
   }
 }
 
-export function instantiateSvarComponent(element) {
+export function instantiateComponent(element) {
   let instance = null
   if (element === null || element === false) {
-    instance = new SvarEmptyComponent()
+    instance = new EmptyComponent()
   }
   
   if (typeof element === 'object') {
     let type = element.type
     if (typeof type === 'string') {
-      instance = new SvarDomComponent(element)
+      instance = new DomComponent(element)
     } else {
-      instance = new SvarCompositeComponent(element)
+      instance = new CompositeComponent(element)
     }
   } else if (typeof element === 'string' || typeof element === 'number') {
-    instance = new SvarTextComponent(element)
+    instance = new TextComponent(element)
   }
   return instance
 }

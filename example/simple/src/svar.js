@@ -40,32 +40,32 @@ var createClass = function () {
   };
 }();
 
-var SvarEmptyComponent = function () {
-  function SvarEmptyComponent() {
-    classCallCheck(this, SvarEmptyComponent);
+var EmptyComponent = function () {
+  function EmptyComponent() {
+    classCallCheck(this, EmptyComponent);
 
     this._element = null;
   }
 
-  createClass(SvarEmptyComponent, [{
+  createClass(EmptyComponent, [{
     key: 'mountComponent',
     value: function mountComponent() {
       return '';
     }
   }]);
-  return SvarEmptyComponent;
+  return EmptyComponent;
 }();
 
-var SvarTextComponent = function () {
-  function SvarTextComponent(text) {
-    classCallCheck(this, SvarTextComponent);
+var TextComponent = function () {
+  function TextComponent(text) {
+    classCallCheck(this, TextComponent);
 
     this._element = text;
     this._stringText = '' + text;
     this._rootID = 0;
   }
 
-  createClass(SvarTextComponent, [{
+  createClass(TextComponent, [{
     key: 'mountComponent',
     value: function mountComponent(rootID) {
       this._rootID = rootID;
@@ -74,12 +74,12 @@ var SvarTextComponent = function () {
       return openingComment + this._stringText + closingComment;
     }
   }]);
-  return SvarTextComponent;
+  return TextComponent;
 }();
 
-var SvarDomComponent = function () {
-  function SvarDomComponent(element) {
-    classCallCheck(this, SvarDomComponent);
+var DomComponent = function () {
+  function DomComponent(element) {
+    classCallCheck(this, DomComponent);
 
     var tag = element.type;
 
@@ -88,13 +88,13 @@ var SvarDomComponent = function () {
     this._rootID = 0;
   }
 
-  createClass(SvarDomComponent, [{
+  createClass(DomComponent, [{
     key: '_mountChildren',
     value: function _mountChildren(children) {
       var result = '';
       for (var index in children) {
         var child = children[index];
-        var childrenComponent = instantiateSvarComponent(child);
+        var childrenComponent = instantiateComponent(child);
         result += childrenComponent.mountComponent(index);
       }
       return result;
@@ -104,7 +104,7 @@ var SvarDomComponent = function () {
     value: function mountComponent(rootID) {
       this._rootID = rootID;
       if (typeof this._element.type !== 'string') {
-        throw new Error('SvarDOMComponent\'s SvarElement.type must be string');
+        throw new Error('DOMComponent\'s Element.type must be string');
       }
 
       var ret = '<' + this._tag + ' ';
@@ -131,23 +131,23 @@ var SvarDomComponent = function () {
       return ret;
     }
   }]);
-  return SvarDomComponent;
+  return DomComponent;
 }();
 
-var SvarCompositeComponent = function () {
-  function SvarCompositeComponent(element) {
-    classCallCheck(this, SvarCompositeComponent);
+var CompositeComponent = function () {
+  function CompositeComponent(element) {
+    classCallCheck(this, CompositeComponent);
 
     this._element = element;
     this._rootId = 0;
   }
 
-  createClass(SvarCompositeComponent, [{
+  createClass(CompositeComponent, [{
     key: 'mountComponent',
     value: function mountComponent(rootID) {
       this._rootId = rootID;
       if (typeof this._element.type !== 'function') {
-        throw new Error('SvarCompositeComponent\'s SvarElement.type must be function');
+        throw new Error('CompositeComponent\'s Element.type must be function');
       }
 
       var Component = this._element.type;
@@ -155,16 +155,16 @@ var SvarCompositeComponent = function () {
       var instance = new Component(props);
 
       var renderedElement = instance.render();
-      var renderedComponent = instantiateSvarComponent(renderedElement);
+      var renderedComponent = instantiateComponent(renderedElement);
       var renderedResult = renderedComponent.mountComponent(rootID);
       return renderedResult;
     }
   }]);
-  return SvarCompositeComponent;
+  return CompositeComponent;
 }();
 
-var SvarElement = function SvarElement(type, props, key, ref) {
-  classCallCheck(this, SvarElement);
+var Element = function Element(type, props, key, ref) {
+  classCallCheck(this, Element);
 
   this.type = type;
   this.props = props;
@@ -172,21 +172,21 @@ var SvarElement = function SvarElement(type, props, key, ref) {
   this.ref = ref;
 };
 
-function instantiateSvarComponent(element) {
+function instantiateComponent(element) {
   var instance = null;
   if (element === null || element === false) {
-    instance = new SvarEmptyComponent();
+    instance = new EmptyComponent();
   }
 
   if ((typeof element === 'undefined' ? 'undefined' : _typeof(element)) === 'object') {
     var type = element.type;
     if (typeof type === 'string') {
-      instance = new SvarDomComponent(element);
+      instance = new DomComponent(element);
     } else {
-      instance = new SvarCompositeComponent(element);
+      instance = new CompositeComponent(element);
     }
   } else if (typeof element === 'string' || typeof element === 'number') {
-    instance = new SvarTextComponent(element);
+    instance = new TextComponent(element);
   }
   return instance;
 }
@@ -233,7 +233,7 @@ function createElement(type, config) {
     }
   }
 
-  return new SvarElement(type, props, key, ref);
+  return new Element(type, props, key, ref);
 }
 
 function extend(obj, props) {
@@ -282,7 +282,7 @@ var Component = function () {
 
 function render(element, container) {
   var rootID = 0;
-  var mainComponent = instantiateSvarComponent(element);
+  var mainComponent = instantiateComponent(element);
   var containerContent = mainComponent.mountComponent(rootID);
 
   container.innerHTML = containerContent;

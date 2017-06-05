@@ -1,4 +1,4 @@
-import { SvarElement } from './virtual-dom'
+import { Element } from './virtual-dom'
 
 const RESERVED_PROPS = {
   ref: true,
@@ -38,5 +38,5 @@ export function createElement(type, config, ...children) {
     }
   }
 
-  return new SvarElement(type, props, key, ref)
+  return new Element(type, props, key, ref)
 }
