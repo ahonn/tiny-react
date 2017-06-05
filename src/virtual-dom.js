@@ -97,15 +97,6 @@ class ReactCompositeComponent {
   }
 }
 
-export class ReactElement {
-  constructor(type, props, key, ref) {
-    this.type = type
-    this.props = props
-    this.key = key
-    this.ref = ref
-  }
-}
-
 export function instantiateReactComponent(element) {
   let instance = null
   if (element === null || element === false) {

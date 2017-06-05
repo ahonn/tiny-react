@@ -40,6 +40,104 @@ var createClass = function () {
   };
 }();
 
+var RESERVED_PROPS = {
+  ref: true,
+  key: true,
+  __self: true,
+  __source: true
+};
+
+var ReactElement = function ReactElement(type, props, key, ref) {
+  classCallCheck(this, ReactElement);
+
+  this.type = type;
+  this.props = props;
+  this.key = key;
+  this.ref = ref;
+};
+
+function createElement(type, config) {
+  var props = {};
+  var key = null;
+  var ref = null;
+
+  if (config != null) {
+    ref = config.ref === undefined ? null : config.ref;
+    key = config.key === undefined ? null : '' + config.key;
+
+    for (var propsName in config) {
+      if (RESERVED_PROPS.hasOwnProperty(propsName)) {
+        continue;
+      }
+
+      if (config.hasOwnProperty(propsName)) {
+        props[propsName] = config[propsName];
+      }
+    }
+
+    for (var _len = arguments.length, children = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      children[_key - 2] = arguments[_key];
+    }
+
+    props.children = children;
+  }
+
+  if (type && type.defaultProps) {
+    var defaultProps = type.defaultProps;
+    for (var _propsName in defaultProps) {
+      if (props[_propsName] === undefined) {
+        props[_propsName] = defaultProps[_propsName];
+      }
+    }
+  }
+
+  return new ReactElement(type, props, key, ref);
+}
+
+function extend(obj, props) {
+  for (var propsName in props) {
+    obj[propsName] = props[propsName];
+  }
+  return obj;
+}
+
+var Component = function () {
+  function Component(props, context) {
+    classCallCheck(this, Component);
+
+    this.props = props;
+    this.context = context;
+    this.state = this.state || {};
+
+    this._prevState = null;
+    this._renderCallbacks = [];
+  }
+
+  createClass(Component, [{
+    key: 'setState',
+    value: function setState(updater, callback) {
+      var state = this.state;
+      if (!this._prevState) {
+        this._prevState = extend({}, state);
+      }
+
+      // When the first argument is an updater function
+      if (typeof updater === 'function') {
+        updater = updater(state, this.props);
+      }
+      extend(state, updater);
+
+      if (callback) {
+        this._renderCallbacks.push(callback);
+      }
+    }
+  }, {
+    key: 'render',
+    value: function render() {}
+  }]);
+  return Component;
+}();
+
 var ReactDOMEmptyComponent = function () {
   function ReactDOMEmptyComponent() {
     classCallCheck(this, ReactDOMEmptyComponent);
@@ -163,15 +261,6 @@ var ReactCompositeComponent = function () {
   return ReactCompositeComponent;
 }();
 
-var ReactElement = function ReactElement(type, props, key, ref) {
-  classCallCheck(this, ReactElement);
-
-  this.type = type;
-  this.props = props;
-  this.key = key;
-  this.ref = ref;
-};
-
 function instantiateReactComponent(element) {
   var instance = null;
   if (element === null || element === false) {
@@ -190,95 +279,6 @@ function instantiateReactComponent(element) {
   }
   return instance;
 }
-
-var RESERVED_PROPS = {
-  ref: true,
-  key: true,
-  __self: true,
-  __source: true
-};
-
-function createElement(type, config) {
-  var props = {};
-  var key = null;
-  var ref = null;
-
-  if (config != null) {
-    ref = config.ref === undefined ? null : config.ref;
-    key = config.key === undefined ? null : '' + config.key;
-
-    for (var propsName in config) {
-      if (RESERVED_PROPS.hasOwnProperty(propsName)) {
-        continue;
-      }
-
-      if (config.hasOwnProperty(propsName)) {
-        props[propsName] = config[propsName];
-      }
-    }
-
-    for (var _len = arguments.length, children = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-      children[_key - 2] = arguments[_key];
-    }
-
-    props.children = children;
-  }
-
-  if (type && type.defaultProps) {
-    var defaultProps = type.defaultProps;
-    for (var _propsName in defaultProps) {
-      if (props[_propsName] === undefined) {
-        props[_propsName] = defaultProps[_propsName];
-      }
-    }
-  }
-
-  return new ReactElement(type, props, key, ref);
-}
-
-function extend(obj, props) {
-  for (var propsName in props) {
-    obj[propsName] = props[propsName];
-  }
-  return obj;
-}
-
-var Component = function () {
-  function Component(props, context) {
-    classCallCheck(this, Component);
-
-    this.props = props;
-    this.context = context;
-    this.state = this.state || {};
-
-    this._prevState = null;
-    this._renderCallbacks = [];
-  }
-
-  createClass(Component, [{
-    key: 'setState',
-    value: function setState(updater, callback) {
-      var state = this.state;
-      if (!this._prevState) {
-        this._prevState = extend({}, state);
-      }
-
-      // When the first argument is an updater function
-      if (typeof updater === 'function') {
-        updater = updater(state, this.props);
-      }
-      extend(state, updater);
-
-      if (callback) {
-        this._renderCallbacks.push(callback);
-      }
-    }
-  }, {
-    key: 'render',
-    value: function render() {}
-  }]);
-  return Component;
-}();
 
 function render(element, container) {
   var rootID = 0;

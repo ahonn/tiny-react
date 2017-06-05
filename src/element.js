@@ -1,10 +1,17 @@
-import { ReactElement } from './virtual-dom'
-
 const RESERVED_PROPS = {
   ref: true,
   key: true,
   __self: true,
   __source: true,
+}
+
+class ReactElement {
+  constructor(type, props, key, ref) {
+    this.type = type
+    this.props = props
+    this.key = key
+    this.ref = ref
+  }
 }
 
 export function createElement(type, config, ...children) {

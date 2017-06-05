@@ -5,9 +5,6 @@ class App extends Component {
     return (
       <div>
         <span>It is Work!</span>
-        Text
-        <span>It is Work!</span>
-        Text2
       </div>
     )
   }
