@@ -1,5 +1,12 @@
 import { VElement } from './virtual-dom'
 
+const RESERVED_PROPS = {
+  ref: true,
+  key: true,
+  __self: true,
+  __source: true,
+}
+
 export function createElement(type, config, ...children) {
   let props = {}
   let key = null
@@ -10,11 +17,7 @@ export function createElement(type, config, ...children) {
     key = config.key === undefined ? null : '' + config.key
 
     for (let propsName in config) {
-      if (propsName === 'ref' || propsName === 'key') {
-        continue
-      }
-
-      if (config.hasOwnProperty(propsName)) {
+      if (config.hasOwnProperty(propsName) || !RESERVED_PROPS.hasOwnProperty(propsName)) {
         props[propsName] = config[propsName]
       }
     }

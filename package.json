@@ -2,7 +2,7 @@
   "name": "tiny-react",
   "version": "1.0.0",
   "description": "a tiny react-like library",
-  "main": "src/index.ts",
+  "main": "dist/tiny-react.common.js",
   "scripts": {
     "build": "rollup -c",
     "build:watch": "rollup -c -w",
