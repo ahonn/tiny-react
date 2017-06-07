@@ -61,8 +61,9 @@ class ReactDomComponent {
 
     let tagContent = ''
     if (props.children) {
-      if (props.children.length === 1 && 
-          typeof props.children[0] === 'string') {
+      let children = props.children
+      if (children.length === 1 &&
+         (typeof children[0] === 'string' || typeof children[0] === 'number')) {
         tagContent += props.children[0]
       } else {
         tagContent = this._mountChildren(props.children)
@@ -103,15 +104,17 @@ export function instantiateReactComponent(element) {
     instance = new ReactDOMEmptyComponent()
   }
   
+  if (typeof element === 'string' || typeof element === 'number') {
+    instance = new ReactDOMTextComponent(element)
+  }
+
   if (typeof element === 'object') {
     let type = element.type
     if (typeof type === 'string') {
       instance = new ReactDomComponent(element)
-    } else {
+    } else if (typeof type === 'function') {
       instance = new ReactCompositeComponent(element)
     }
-  } else if (typeof element === 'string' || typeof element === 'number') {
-    instance = new ReactDOMTextComponent(element)
   }
   return instance
 }

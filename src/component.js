@@ -1,6 +1,6 @@
 import { extend } from './utils'
 
-export class Component {
+export class ReactClassComponent {
   constructor(props, context) {
     this.props = props
     this.context = context
