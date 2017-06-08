@@ -17,9 +17,7 @@ class ReactDOMTextComponent {
 
   mountComponent(rootID) {
     this._rootID = rootID
-    let openingComment = `<!-- text: ${rootID} -->`
-    let closingComment = '<!-- /text -->'
-    return openingComment + this._stringText + closingComment
+    return this._stringText
   }
 }
 
@@ -61,13 +59,7 @@ class ReactDomComponent {
 
     let tagContent = ''
     if (props.children) {
-      let children = props.children
-      if (children.length === 1 &&
-         (typeof children[0] === 'string' || typeof children[0] === 'number')) {
-        tagContent += props.children[0]
-      } else {
-        tagContent = this._mountChildren(props.children)
-      }
+      tagContent = this._mountChildren(props.children)
     }
     ret += tagContent
     ret += `</${this._tag}>`

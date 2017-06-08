@@ -101,9 +101,9 @@ function extend(obj, props) {
   return obj;
 }
 
-var Component = function () {
-  function Component(props, context) {
-    classCallCheck(this, Component);
+var ReactClassComponent = function () {
+  function ReactClassComponent(props, context) {
+    classCallCheck(this, ReactClassComponent);
 
     this.props = props;
     this.context = context;
@@ -113,7 +113,7 @@ var Component = function () {
     this._renderCallbacks = [];
   }
 
-  createClass(Component, [{
+  createClass(ReactClassComponent, [{
     key: 'setState',
     value: function setState(updater, callback) {
       var state = this.state;
@@ -135,7 +135,7 @@ var Component = function () {
     key: 'render',
     value: function render() {}
   }]);
-  return Component;
+  return ReactClassComponent;
 }();
 
 var ReactDOMEmptyComponent = function () {
@@ -167,9 +167,7 @@ var ReactDOMTextComponent = function () {
     key: 'mountComponent',
     value: function mountComponent(rootID) {
       this._rootID = rootID;
-      var openingComment = '<!-- text: ' + rootID + ' -->';
-      var closingComment = '<!-- /text -->';
-      return openingComment + this._stringText + closingComment;
+      return this._stringText;
     }
   }]);
   return ReactDOMTextComponent;
@@ -218,11 +216,7 @@ var ReactDomComponent = function () {
 
       var tagContent = '';
       if (props.children) {
-        if (props.children.length === 1 && typeof props.children[0] === 'string') {
-          tagContent += props.children[0];
-        } else {
-          tagContent = this._mountChildren(props.children);
-        }
+        tagContent = this._mountChildren(props.children);
       }
       ret += tagContent;
       ret += '</' + this._tag + '>';
@@ -267,15 +261,17 @@ function instantiateReactComponent(element) {
     instance = new ReactDOMEmptyComponent();
   }
 
+  if (typeof element === 'string' || typeof element === 'number') {
+    instance = new ReactDOMTextComponent(element);
+  }
+
   if ((typeof element === 'undefined' ? 'undefined' : _typeof(element)) === 'object') {
     var type = element.type;
     if (typeof type === 'string') {
       instance = new ReactDomComponent(element);
-    } else {
+    } else if (typeof type === 'function') {
       instance = new ReactCompositeComponent(element);
     }
-  } else if (typeof element === 'string' || typeof element === 'number') {
-    instance = new ReactDOMTextComponent(element);
   }
   return instance;
 }
@@ -289,9 +285,9 @@ function render(element, container) {
 }
 
 var React = {
+  render: render,
   createElement: createElement,
-  Component: Component,
-  render: render
+  Component: ReactClassComponent
 };
 if (window) {
   window['React'] = React;
