@@ -1,32 +1,23 @@
-import { extend } from './utils'
+import { Updater } from './updater'
 
 export class ReactClassComponent {
   constructor(props, context) {
     this.props = props
     this.context = context
     this.state = this.state || {}
-
-    this._prevState = null
-    this._renderCallbacks = []
+    this.updater = new Updater(this)
   }
 
-  setState(updater, callback) {
-    let state = this.state
-    if (!this._prevState) {
-      this._prevState = extend({}, state)
+  static setState(partialState, callback) {
+    if (typeof partialState !== 'object' || typeof partialState !== 'function') {
+      throw new Error('setState(...): takes an object of state variables to update or a ' +
+        'function which returns an object of state variables.')
     }
-
-    // When the first argument is an updater function
-    if (typeof updater === 'function') {
-      updater = updater(state, this.props)
-    }
-    extend(state, updater)
-
+    this.updater.enqueueSetState(partialState)
     if (callback) {
-      this._renderCallbacks.push(callback)
+      this.updater.enqueueCallback(callback, 'setState')
     }
   }
-
-  render() {}
 }
+
 

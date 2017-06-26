@@ -7,6 +7,7 @@ const React = {
   createElement,
   Component: ReactClassComponent,
 }
+
 if (window) {
   window['React'] = React
 }
