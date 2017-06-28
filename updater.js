@@ -1,7 +1,9 @@
+const dirtyComponents = []
+
 const batchingStrategy = {
   isBatchingUpdates: false,
 
-  batchingStrategy: function (callback, component) {
+  batchedUpdates: function (callback, component) {
     const alreadyBatchingUpdates = this.isBatchingUpdates
     this.isBatchingUpdates = true
 
@@ -12,7 +14,11 @@ const batchingStrategy = {
 }
 
 function enqueueUpdate(component) {
-
+  if (!batchingStrategy.isBatchingUpdates) {
+    batchingStrategy.batchedUpdates(enqueueUpdate, component)
+    return
+  }
+  dirtyComponents.push(component)
 }
 
 export class Updater {
@@ -25,7 +31,7 @@ export class Updater {
 
   static enqueueSetState(partialState) {
     this._pendingStateQueue.push(partialState)
-    this.enqueueUpdate(this.instance)
+    enqueueUpdate(this.instance)
   }
 
 }
