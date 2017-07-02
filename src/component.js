@@ -7,17 +7,18 @@ export class ReactClassComponent {
     this.state = this.state || {}
     this.updater = new Updater(this)
   }
+}
 
-  static setState(partialState, callback) {
-    if (typeof partialState !== 'object' || typeof partialState !== 'function') {
-      throw new Error('setState(...): takes an object of state variables to update or a ' +
-        'function which returns an object of state variables.')
-    }
-    this.updater.enqueueSetState(partialState)
-    if (callback) {
-      this.updater.enqueueCallback(callback, 'setState')
-    }
+ReactClassComponent.prototype.setState = function (partialState, callback) {
+  if (typeof partialState !== 'object' && typeof partialState !== 'function') {
+    throw new Error('setState(...): takes an object of state variables to update or a ' +
+      'function which returns an object of state variables.')
+  }
+  this.updater.enqueueSetState(this, partialState)
+  if (callback) {
+    this.updater.enqueueCallback(this, callback, 'setState')
   }
 }
+
 
 

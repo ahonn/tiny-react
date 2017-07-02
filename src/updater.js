@@ -1,5 +1,14 @@
 const dirtyComponents = []
 
+export const Updater = {
+  enqueueSetState: function (instance, partialState) {
+    const queue = instance._pendingStateQueue ||
+      (instance._pendingStateQueue = [])
+    queue.push(partialState)
+    enqueueUpdate(instance)
+  }
+}
+
 const batchingStrategy = {
   isBatchingUpdates: false,
 
@@ -9,6 +18,16 @@ const batchingStrategy = {
 
     if (alreadyBatchingUpdates) {
       callback(component)
+    } else {
+      this.runBatchUpdates()
+    }
+  },
+
+  runBatchUpdates: function () {
+    const len = dirtyComponents.length
+    for (let i = 0; i < len; i++) {
+      const component = dirtyComponents[i]
+      component._updateComponent()
     }
   }
 }
@@ -21,18 +40,4 @@ function enqueueUpdate(component) {
   dirtyComponents.push(component)
 }
 
-export class Updater {
-  constructor(instance) {
-    this.instance = instance
-    this._isBatchingUpdates = false
-    this._pendingStateQueue = []
-    this._pendingCallback = []
-  }
-
-  static enqueueSetState(partialState) {
-    this._pendingStateQueue.push(partialState)
-    enqueueUpdate(this.instance)
-  }
-
-}
 

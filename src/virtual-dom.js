@@ -71,6 +71,11 @@ class ReactCompositeComponent {
   constructor(element) {
     this._element = element
     this._rootId = 0
+    this._instance = null
+
+    this._updateBatchNumber = null
+    this._pendingStateQueue = null
+    this._pendingCallback = null
   }
 
   mountComponent(rootID) {
@@ -81,12 +86,30 @@ class ReactCompositeComponent {
 
     const Component = this._element.type
     const props = this._element.props
-    const instance = new Component(props)
+    const ins = new Component(props)
+    this._instance = ins
 
-    const renderedElement = instance.render()
+    let initialState = ins.state
+    if (initialState == undefined) {
+      initialState = ins.state = null
+    }
+
+    const renderedElement = ins.render()
     const renderedComponent = instantiateReactComponent(renderedElement)
     const renderedResult = renderedComponent.mountComponent(rootID)
     return renderedResult
+  }
+
+  _initialMount() {
+    const ins = this._instance
+
+    if (ins.componentWillMount) {
+      ins.componentWillMount()
+
+      if (this._pendingStateQueue) {
+        ins.state = this._processPendingState()
+      }
+    }
   }
 }
 

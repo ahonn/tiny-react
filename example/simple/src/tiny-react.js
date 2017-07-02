@@ -94,49 +94,76 @@ function createElement(type, config) {
   return new ReactElement(type, props, key, ref);
 }
 
-function extend(obj, props) {
-  for (var propsName in props) {
-    obj[propsName] = props[propsName];
+var dirtyComponents = [];
+
+var Updater = function () {
+  function Updater(instance) {
+    classCallCheck(this, Updater);
+
+    this.instance = instance;
+    this._pendingStateQueue = [];
+    this._pendingCallback = [];
   }
-  return obj;
+
+  createClass(Updater, [{
+    key: "enqueueSetState",
+    value: function enqueueSetState(partialState) {
+      this._pendingStateQueue.push(partialState);
+      enqueueUpdate(this.instance);
+    }
+  }]);
+  return Updater;
+}();
+
+var batchingStrategy = {
+  isBatchingUpdates: false,
+
+  batchedUpdates: function batchedUpdates(callback, component) {
+    var alreadyBatchingUpdates = this.isBatchingUpdates;
+    this.isBatchingUpdates = true;
+
+    if (alreadyBatchingUpdates) {
+      callback(component);
+    } else {
+      this.runBatchUpdates();
+    }
+  },
+
+  runBatchUpdates: function runBatchUpdates() {
+    var len = dirtyComponents.length;
+    for (var i = 0; i < len; i++) {
+      var component = dirtyComponents[i];
+      component._renderedComponent();
+    }
+  }
+};
+
+function enqueueUpdate(component) {
+  if (!batchingStrategy.isBatchingUpdates) {
+    batchingStrategy.batchedUpdates(enqueueUpdate, component);
+    return;
+  }
+  dirtyComponents.push(component);
 }
 
-var ReactClassComponent = function () {
-  function ReactClassComponent(props, context) {
-    classCallCheck(this, ReactClassComponent);
+var ReactClassComponent = function ReactClassComponent(props, context) {
+  classCallCheck(this, ReactClassComponent);
 
-    this.props = props;
-    this.context = context;
-    this.state = this.state || {};
+  this.props = props;
+  this.context = context;
+  this.state = this.state || {};
+  this.updater = new Updater(this);
+};
 
-    this._prevState = null;
-    this._renderCallbacks = [];
+ReactClassComponent.prototype.setState = function (partialState, callback) {
+  if ((typeof partialState === 'undefined' ? 'undefined' : _typeof(partialState)) !== 'object' && typeof partialState !== 'function') {
+    throw new Error('setState(...): takes an object of state variables to update or a ' + 'function which returns an object of state variables.');
   }
-
-  createClass(ReactClassComponent, [{
-    key: 'setState',
-    value: function setState(updater, callback) {
-      var state = this.state;
-      if (!this._prevState) {
-        this._prevState = extend({}, state);
-      }
-
-      // When the first argument is an updater function
-      if (typeof updater === 'function') {
-        updater = updater(state, this.props);
-      }
-      extend(state, updater);
-
-      if (callback) {
-        this._renderCallbacks.push(callback);
-      }
-    }
-  }, {
-    key: 'render',
-    value: function render() {}
-  }]);
-  return ReactClassComponent;
-}();
+  this.updater.enqueueSetState(partialState);
+  if (callback) {
+    this.updater.enqueueCallback(callback, 'setState');
+  }
+};
 
 var ReactDOMEmptyComponent = function () {
   function ReactDOMEmptyComponent() {
@@ -251,6 +278,11 @@ var ReactCompositeComponent = function () {
       var renderedResult = renderedComponent.mountComponent(rootID);
       return renderedResult;
     }
+  }, {
+    key: '_renderedComponent',
+    value: function _renderedComponent() {
+      console.log(this.element);
+    }
   }]);
   return ReactCompositeComponent;
 }();
@@ -289,6 +321,7 @@ var React = {
   createElement: createElement,
   Component: ReactClassComponent
 };
+
 if (window) {
   window['React'] = React;
 }
