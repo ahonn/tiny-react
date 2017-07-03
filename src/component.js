@@ -1,11 +1,11 @@
-import { Updater } from './updater'
+import { updater } from './updater'
 
 export class ReactClassComponent {
   constructor(props, context) {
     this.props = props
     this.context = context
     this.state = this.state || {}
-    this.updater = new Updater(this)
+    this.updater = updater
   }
 }
 

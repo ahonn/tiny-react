@@ -96,24 +96,17 @@ function createElement(type, config) {
 
 var dirtyComponents = [];
 
-var Updater = function () {
-  function Updater(instance) {
-    classCallCheck(this, Updater);
+var updater = {
+  enqueueSetState: function enqueueSetState(instance, partialState) {
+    var internalInstance = instance._reactInternalInstance;
 
-    this.instance = instance;
-    this._pendingStateQueue = [];
-    this._pendingCallback = [];
+    if (!internalInstance) return;
+    var queue = internalInstance._pendingStateQueue || (internalInstance._pendingStateQueue = []);
+
+    queue.push(partialState);
+    enqueueUpdate(internalInstance);
   }
-
-  createClass(Updater, [{
-    key: "enqueueSetState",
-    value: function enqueueSetState(partialState) {
-      this._pendingStateQueue.push(partialState);
-      enqueueUpdate(this.instance);
-    }
-  }]);
-  return Updater;
-}();
+};
 
 var batchingStrategy = {
   isBatchingUpdates: false,
@@ -125,7 +118,9 @@ var batchingStrategy = {
     if (alreadyBatchingUpdates) {
       callback(component);
     } else {
+      callback(component);
       this.runBatchUpdates();
+      this.isBatchingUpdates = false;
     }
   },
 
@@ -133,7 +128,7 @@ var batchingStrategy = {
     var len = dirtyComponents.length;
     for (var i = 0; i < len; i++) {
       var component = dirtyComponents[i];
-      component._renderedComponent();
+      component.updateComponent();
     }
   }
 };
@@ -143,6 +138,7 @@ function enqueueUpdate(component) {
     batchingStrategy.batchedUpdates(enqueueUpdate, component);
     return;
   }
+
   dirtyComponents.push(component);
 }
 
@@ -152,16 +148,16 @@ var ReactClassComponent = function ReactClassComponent(props, context) {
   this.props = props;
   this.context = context;
   this.state = this.state || {};
-  this.updater = new Updater(this);
+  this.updater = updater;
 };
 
 ReactClassComponent.prototype.setState = function (partialState, callback) {
   if ((typeof partialState === 'undefined' ? 'undefined' : _typeof(partialState)) !== 'object' && typeof partialState !== 'function') {
     throw new Error('setState(...): takes an object of state variables to update or a ' + 'function which returns an object of state variables.');
   }
-  this.updater.enqueueSetState(partialState);
+  this.updater.enqueueSetState(this, partialState);
   if (callback) {
-    this.updater.enqueueCallback(callback, 'setState');
+    this.updater.enqueueCallback(this, callback, 'setState');
   }
 };
 
@@ -259,6 +255,11 @@ var ReactCompositeComponent = function () {
 
     this._element = element;
     this._rootId = 0;
+    this._instance = null;
+
+    this._updateBatchNumber = null;
+    this._pendingStateQueue = null;
+    this._pendingCallback = null;
   }
 
   createClass(ReactCompositeComponent, [{
@@ -271,17 +272,60 @@ var ReactCompositeComponent = function () {
 
       var Component = this._element.type;
       var props = this._element.props;
-      var instance = new Component(props);
+      var ins = new Component(props);
 
-      var renderedElement = instance.render();
-      var renderedComponent = instantiateReactComponent(renderedElement);
-      var renderedResult = renderedComponent.mountComponent(rootID);
-      return renderedResult;
+      ins._reactInternalInstance = this;
+      this._instance = ins;
+
+      var initialState = ins.state;
+      if (initialState === undefined) {
+        initialState = ins.state = null;
+      }
+
+      var markup = this._initialMount();
+      return markup;
     }
   }, {
-    key: '_renderedComponent',
-    value: function _renderedComponent() {
-      console.log(this.element);
+    key: 'updateComponent',
+    value: function updateComponent() {
+      var ins = this._instance;
+    }
+  }, {
+    key: '_initialMount',
+    value: function _initialMount() {
+      var ins = this._instance;
+
+      if (ins.componentWillMount) {
+        ins.componentWillMount();
+
+        if (this._pendingStateQueue) {
+          console.log(this._pendingStateQueue);
+          ins.state = this._processPendingState();
+        }
+      }
+
+      var renderedElement = ins.render();
+      var renderedComponent = instantiateReactComponent(renderedElement);
+      var markup = renderedComponent.mountComponent(this.rootID);
+      return markup;
+    }
+  }, {
+    key: '_processPendingState',
+    value: function _processPendingState() {
+      var ins = this._instance;
+      var queue = this._pendingStateQueue;
+
+      if (!queue) {
+        return ins.state;
+      }
+
+      var nextState = ins.state;
+      for (var i = 0; i < queue.length; i++) {
+        var partial = queue[i];
+        Object.assign(nextState, partial);
+      }
+
+      return nextState;
     }
   }]);
   return ReactCompositeComponent;

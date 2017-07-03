@@ -87,17 +87,21 @@ class ReactCompositeComponent {
     const Component = this._element.type
     const props = this._element.props
     const ins = new Component(props)
+
+    ins._reactInternalInstance = this
     this._instance = ins
 
     let initialState = ins.state
-    if (initialState == undefined) {
+    if (initialState === undefined) {
       initialState = ins.state = null
     }
 
-    const renderedElement = ins.render()
-    const renderedComponent = instantiateReactComponent(renderedElement)
-    const renderedResult = renderedComponent.mountComponent(rootID)
-    return renderedResult
+    const markup = this._initialMount()
+    return markup
+  }
+
+  updateComponent() {
+    const ins = this._instance
   }
 
   _initialMount() {
@@ -107,9 +111,32 @@ class ReactCompositeComponent {
       ins.componentWillMount()
 
       if (this._pendingStateQueue) {
+        console.log(this._pendingStateQueue)
         ins.state = this._processPendingState()
       }
     }
+
+    const renderedElement = ins.render()
+    const renderedComponent = instantiateReactComponent(renderedElement)
+    const markup = renderedComponent.mountComponent(this.rootID)
+    return markup
+  }
+
+  _processPendingState() {
+    const ins = this._instance
+    const queue = this._pendingStateQueue
+
+    if (!queue) {
+      return ins.state
+    }
+
+    const nextState = ins.state
+    for (let i = 0; i < queue.length; i++) {
+      const partial = queue[i]
+      Object.assign(nextState, partial)
+    }
+
+    return nextState
   }
 }
 
