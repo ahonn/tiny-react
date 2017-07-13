@@ -101,7 +101,12 @@ class ReactCompositeComponent {
   }
 
   updateComponent() {
+    console.log('update')
     const ins = this._instance
+
+    if (this._pendingStateQueue) {
+      ins.state = this._processPendingState()
+    }
   }
 
   _initialMount() {
@@ -111,7 +116,6 @@ class ReactCompositeComponent {
       ins.componentWillMount()
 
       if (this._pendingStateQueue) {
-        console.log(this._pendingStateQueue)
         ins.state = this._processPendingState()
       }
     }
@@ -119,20 +123,33 @@ class ReactCompositeComponent {
     const renderedElement = ins.render()
     const renderedComponent = instantiateReactComponent(renderedElement)
     const markup = renderedComponent.mountComponent(this.rootID)
+
+    if (ins.componentDidMount) {
+      ins.componentDidMount()
+
+      if (this._pendingStateQueue) {
+        ins.state = this._processPendingState()
+      }
+    }
+    ins.updater.resetBatchingStrategy()
+
     return markup
   }
 
   _processPendingState() {
     const ins = this._instance
     const queue = this._pendingStateQueue
+    this._pendingStateQueue = null
 
     if (!queue) {
       return ins.state
     }
 
     const nextState = ins.state
+      console.log(nextState)
     for (let i = 0; i < queue.length; i++) {
       const partial = queue[i]
+      console.log(partial)
       Object.assign(nextState, partial)
     }
 

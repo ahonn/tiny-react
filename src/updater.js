@@ -1,4 +1,5 @@
 const dirtyComponents = []
+let updateBatchNumber = 0
 
 export const updater = {
   enqueueSetState: function (instance, partialState) {
@@ -9,7 +10,12 @@ export const updater = {
       (internalInstance._pendingStateQueue = [])
 
     queue.push(partialState)
+    console.log(queue)
     enqueueUpdate(internalInstance)
+  },
+
+  resetBatchingStrategy: function () {
+    batchingStrategy.isBatchingUpdates = false
   }
 }
 
@@ -23,9 +29,8 @@ const batchingStrategy = {
     if (alreadyBatchingUpdates) {
       callback(component)
     } else {
-      callback(component)
+      console.log('runBatchUpdates')
       this.runBatchUpdates()
-      this.isBatchingUpdates = false
     }
   },
 
@@ -33,18 +38,23 @@ const batchingStrategy = {
     const len = dirtyComponents.length
     for (let i = 0; i < len; i++) {
       const component = dirtyComponents[i]
+      console.log(component.updateComponent)
       component.updateComponent()
     }
   }
 }
 
 function enqueueUpdate(component) {
+  console.log(batchingStrategy.isBatchingUpdates)
   if (!batchingStrategy.isBatchingUpdates) {
     batchingStrategy.batchedUpdates(enqueueUpdate, component)
     return
   }
 
   dirtyComponents.push(component)
+  if (component._updateBatchNumber === null) {
+    component._updateBatchNumber = updateBatchNumber + 1
+  }
 }
 
 

@@ -95,6 +95,7 @@ function createElement(type, config) {
 }
 
 var dirtyComponents = [];
+var updateBatchNumber = 0;
 
 var updater = {
   enqueueSetState: function enqueueSetState(instance, partialState) {
@@ -104,7 +105,12 @@ var updater = {
     var queue = internalInstance._pendingStateQueue || (internalInstance._pendingStateQueue = []);
 
     queue.push(partialState);
+    console.log(queue);
     enqueueUpdate(internalInstance);
+  },
+
+  resetBatchingStrategy: function resetBatchingStrategy() {
+    batchingStrategy.isBatchingUpdates = false;
   }
 };
 
@@ -118,9 +124,8 @@ var batchingStrategy = {
     if (alreadyBatchingUpdates) {
       callback(component);
     } else {
-      callback(component);
+      console.log('runBatchUpdates');
       this.runBatchUpdates();
-      this.isBatchingUpdates = false;
     }
   },
 
@@ -128,18 +133,23 @@ var batchingStrategy = {
     var len = dirtyComponents.length;
     for (var i = 0; i < len; i++) {
       var component = dirtyComponents[i];
+      console.log(component.updateComponent);
       component.updateComponent();
     }
   }
 };
 
 function enqueueUpdate(component) {
+  console.log(batchingStrategy.isBatchingUpdates);
   if (!batchingStrategy.isBatchingUpdates) {
     batchingStrategy.batchedUpdates(enqueueUpdate, component);
     return;
   }
 
   dirtyComponents.push(component);
+  if (component._updateBatchNumber === null) {
+    component._updateBatchNumber = updateBatchNumber + 1;
+  }
 }
 
 var ReactClassComponent = function ReactClassComponent(props, context) {
@@ -288,7 +298,12 @@ var ReactCompositeComponent = function () {
   }, {
     key: 'updateComponent',
     value: function updateComponent() {
+      console.log('update');
       var ins = this._instance;
+
+      if (this._pendingStateQueue) {
+        ins.state = this._processPendingState();
+      }
     }
   }, {
     key: '_initialMount',
@@ -299,7 +314,6 @@ var ReactCompositeComponent = function () {
         ins.componentWillMount();
 
         if (this._pendingStateQueue) {
-          console.log(this._pendingStateQueue);
           ins.state = this._processPendingState();
         }
       }
@@ -307,6 +321,16 @@ var ReactCompositeComponent = function () {
       var renderedElement = ins.render();
       var renderedComponent = instantiateReactComponent(renderedElement);
       var markup = renderedComponent.mountComponent(this.rootID);
+
+      if (ins.componentDidMount) {
+        ins.componentDidMount();
+
+        if (this._pendingStateQueue) {
+          ins.state = this._processPendingState();
+        }
+      }
+      ins.updater.resetBatchingStrategy();
+
       return markup;
     }
   }, {
@@ -314,14 +338,17 @@ var ReactCompositeComponent = function () {
     value: function _processPendingState() {
       var ins = this._instance;
       var queue = this._pendingStateQueue;
+      this._pendingStateQueue = null;
 
       if (!queue) {
         return ins.state;
       }
 
       var nextState = ins.state;
+      console.log(nextState);
       for (var i = 0; i < queue.length; i++) {
         var partial = queue[i];
+        console.log(partial);
         Object.assign(nextState, partial);
       }
 
