@@ -4,10 +4,13 @@ export class ReactClassComponent {
   constructor(props, context) {
     this.props = props
     this.context = context
+    this.refs = {}
     this.state = this.state || {}
     this.updater = updater
   }
 }
+
+ReactClassComponent.prototype.isReactComponent = {}
 
 ReactClassComponent.prototype.setState = function (partialState, callback) {
   if (typeof partialState !== 'object' && typeof partialState !== 'function') {

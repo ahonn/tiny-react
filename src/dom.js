@@ -1,9 +1,16 @@
 import { instantiateReactComponent } from './virtual-dom'
 
-export function render(element, container) {
-  const rootID = 0
-  const mainComponent = instantiateReactComponent(element)
-  const containerContent = mainComponent.mountComponent(rootID)
+const ReactDOM = {
+  render: function (nextElement, container, callback) {
+    const componentInstance = instantiateReactComponent(nextElement)
+    const markup = componentInstance.mountComponent()
 
-  container.innerHTML = containerContent
+    container.innerHTML = markup
+
+    if (callback) {
+      callback.call(componentInstance)
+    }
+  },
 }
+
+export default ReactDOM

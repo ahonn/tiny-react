@@ -40,6 +40,245 @@ var createClass = function () {
   };
 }();
 
+var ReactDOMEmptyComponent = function () {
+  function ReactDOMEmptyComponent() {
+    classCallCheck(this, ReactDOMEmptyComponent);
+
+    this._currentElement = null;
+  }
+
+  createClass(ReactDOMEmptyComponent, [{
+    key: 'mountComponent',
+    value: function mountComponent() {
+      return '';
+    }
+  }]);
+  return ReactDOMEmptyComponent;
+}();
+
+var ReactDOMTextComponent = function () {
+  function ReactDOMTextComponent(text) {
+    classCallCheck(this, ReactDOMTextComponent);
+
+    this._currentElement = text;
+    this._stringText = '' + text;
+    this._rootID = 0;
+  }
+
+  createClass(ReactDOMTextComponent, [{
+    key: 'mountComponent',
+    value: function mountComponent(rootID) {
+      this._rootID = rootID;
+      return this._stringText;
+    }
+  }]);
+  return ReactDOMTextComponent;
+}();
+
+var ReactDomComponent = function () {
+  function ReactDomComponent(element) {
+    classCallCheck(this, ReactDomComponent);
+
+    var tag = element.type;
+
+    this._currentElement = element;
+    this._tag = tag.toLowerCase();
+    this._rootID = 0;
+  }
+
+  createClass(ReactDomComponent, [{
+    key: '_mountChildren',
+    value: function _mountChildren(children) {
+      var result = '';
+      for (var index in children) {
+        var child = children[index];
+        var childrenComponent = instantiateReactComponent(child);
+        result += childrenComponent.mountComponent(index);
+      }
+      return result;
+    }
+  }, {
+    key: 'mountComponent',
+    value: function mountComponent(rootID) {
+      this._rootID = rootID;
+      if (typeof this._currentElement.type !== 'string') {
+        throw new Error('DOMComponent\'s Element.type must be string');
+      }
+
+      var ret = '<' + this._tag + ' ';
+      var props = this._currentElement.props;
+      for (var propsName in props) {
+        if (propsName === 'children') {
+          continue;
+        }
+        var propsValue = props[propsName];
+        ret += propsName + '=' + propsValue;
+      }
+      ret += '>';
+
+      var tagContent = '';
+      if (props.children) {
+        tagContent = this._mountChildren(props.children);
+      }
+      ret += tagContent;
+      ret += '</' + this._tag + '>';
+      return ret;
+    }
+  }]);
+  return ReactDomComponent;
+}();
+
+var ReactCompositeComponent = function () {
+  function ReactCompositeComponent(element) {
+    classCallCheck(this, ReactCompositeComponent);
+
+    this._currentElement = element;
+    this._rootNodeId = 0;
+    this._instance = null;
+    this._hostParent = null;
+    this._context = null;
+
+    this._renderedComponent = null;
+    this._updateBatchNumber = null;
+    this._pendingStateQueue = null;
+    this._pendingCallbacks = null;
+  }
+
+  createClass(ReactCompositeComponent, [{
+    key: 'mountComponent',
+    value: function mountComponent(hostParent, context) {
+      this._context = context;
+      this._hostParent = hostParent;
+
+      var Component = this._currentElement.type;
+      var publicProps = this._currentElement.props;
+      var publicContext = this._processContext(context);
+      var ins = new Component(publicProps, publicContext);
+
+      ins.props = publicProps;
+      ins.context = publicContext;
+      ins.refs = {};
+
+      this._instance = ins;
+      ins._reactInternalInstance = this;
+
+      var initialState = ins.state;
+      if (initialState === undefined) {
+        ins.state = initialState = null;
+      }
+
+      var markup = this._initialMount(hostParent, context);
+      return markup;
+    }
+  }, {
+    key: 'updateComponent',
+    value: function updateComponent() {}
+  }, {
+    key: '_initialMount',
+    value: function _initialMount(hostParent, context) {
+      var ins = this._instance;
+
+      if (ins.componentWillMount) {
+        ins.componentWillMount();
+
+        if (this._pendingStateQueue) {
+          ins.state = this._processPendingState(ins.props, ins.context);
+        }
+      }
+
+      var renderedElement = ins.render();
+      var renderedComponent = instantiateReactComponent(renderedElement);
+
+      this._renderedComponent = renderedComponent;
+      var markup = renderedComponent.mountComponent(hostParent, this._processChildContext(context));
+
+      return markup;
+    }
+  }, {
+    key: '_processPendingState',
+    value: function _processPendingState() {
+      var ins = this._instance;
+      var queue = this._pendingStateQueue;
+      this._pendingStateQueue = null;
+
+      if (!queue) {
+        return ins.state;
+      }
+
+      var nextState = ins.state;
+      for (var i = 0; i < queue.length; i++) {
+        var partial = queue[i];
+        Object.assign(nextState, partial);
+      }
+
+      return nextState;
+    }
+  }, {
+    key: '_processContext',
+    value: function _processContext(context) {
+      var Component = this._currentElement.type;
+      var contextTypes = Component.contextTypes;
+      if (!contextTypes) {
+        return {};
+      }
+      var maskedContext = {};
+      for (var name in contextTypes) {
+        maskedContext[name] = context[name];
+      }
+      return maskedContext;
+    }
+  }, {
+    key: '_processChildContext',
+    value: function _processChildContext(currentContext) {
+      var ins = this._instance;
+      var childContext = null;
+
+      if (ins.getChildContext) {
+        childContext = ins.getChildContext();
+      }
+      if (childContext) {
+        return Object.assign({}, currentContext, childContext);
+      }
+      return currentContext;
+    }
+  }]);
+  return ReactCompositeComponent;
+}();
+
+function instantiateReactComponent(element) {
+  var instance = null;
+  if (element === null || element === false) {
+    instance = new ReactDOMEmptyComponent();
+  }
+
+  if (typeof element === 'string' || typeof element === 'number') {
+    instance = new ReactDOMTextComponent(element);
+  }
+
+  if ((typeof element === 'undefined' ? 'undefined' : _typeof(element)) === 'object') {
+    var type = element.type;
+    if (typeof type === 'string') {
+      instance = new ReactDomComponent(element);
+    } else if (typeof type === 'function') {
+      instance = new ReactCompositeComponent(element);
+    }
+  }
+  return instance;
+}
+
+var ReactDOM = {
+  render: function render(nextElement, container, callback) {
+    var componentInstance = instantiateReactComponent(nextElement);
+    var markup = componentInstance.mountComponent();
+
+    container.innerHTML = markup;
+
+    if (callback) {
+      callback.call(componentInstance);
+    }
+  }
+};
+
 var RESERVED_PROPS = {
   ref: true,
   key: true,
@@ -56,7 +295,7 @@ var ReactElement = function ReactElement(type, props, key, ref) {
   this.ref = ref;
 };
 
-function createElement(type, config) {
+ReactElement.createElement = function (type, config) {
   var props = {};
   var key = null;
   var ref = null;
@@ -92,7 +331,7 @@ function createElement(type, config) {
   }
 
   return new ReactElement(type, props, key, ref);
-}
+};
 
 var dirtyComponents = [];
 var updateBatchNumber = 0;
@@ -105,7 +344,6 @@ var updater = {
     var queue = internalInstance._pendingStateQueue || (internalInstance._pendingStateQueue = []);
 
     queue.push(partialState);
-    console.log(queue);
     enqueueUpdate(internalInstance);
   },
 
@@ -124,7 +362,6 @@ var batchingStrategy = {
     if (alreadyBatchingUpdates) {
       callback(component);
     } else {
-      console.log('runBatchUpdates');
       this.runBatchUpdates();
     }
   },
@@ -133,14 +370,12 @@ var batchingStrategy = {
     var len = dirtyComponents.length;
     for (var i = 0; i < len; i++) {
       var component = dirtyComponents[i];
-      console.log(component.updateComponent);
       component.updateComponent();
     }
   }
 };
 
 function enqueueUpdate(component) {
-  console.log(batchingStrategy.isBatchingUpdates);
   if (!batchingStrategy.isBatchingUpdates) {
     batchingStrategy.batchedUpdates(enqueueUpdate, component);
     return;
@@ -157,9 +392,12 @@ var ReactClassComponent = function ReactClassComponent(props, context) {
 
   this.props = props;
   this.context = context;
+  this.refs = {};
   this.state = this.state || {};
   this.updater = updater;
 };
+
+ReactClassComponent.prototype.isReactComponent = {};
 
 ReactClassComponent.prototype.setState = function (partialState, callback) {
   if ((typeof partialState === 'undefined' ? 'undefined' : _typeof(partialState)) !== 'object' && typeof partialState !== 'function') {
@@ -171,221 +409,8 @@ ReactClassComponent.prototype.setState = function (partialState, callback) {
   }
 };
 
-var ReactDOMEmptyComponent = function () {
-  function ReactDOMEmptyComponent() {
-    classCallCheck(this, ReactDOMEmptyComponent);
-
-    this._element = null;
-  }
-
-  createClass(ReactDOMEmptyComponent, [{
-    key: 'mountComponent',
-    value: function mountComponent() {
-      return '';
-    }
-  }]);
-  return ReactDOMEmptyComponent;
-}();
-
-var ReactDOMTextComponent = function () {
-  function ReactDOMTextComponent(text) {
-    classCallCheck(this, ReactDOMTextComponent);
-
-    this._element = text;
-    this._stringText = '' + text;
-    this._rootID = 0;
-  }
-
-  createClass(ReactDOMTextComponent, [{
-    key: 'mountComponent',
-    value: function mountComponent(rootID) {
-      this._rootID = rootID;
-      return this._stringText;
-    }
-  }]);
-  return ReactDOMTextComponent;
-}();
-
-var ReactDomComponent = function () {
-  function ReactDomComponent(element) {
-    classCallCheck(this, ReactDomComponent);
-
-    var tag = element.type;
-
-    this._element = element;
-    this._tag = tag.toLowerCase();
-    this._rootID = 0;
-  }
-
-  createClass(ReactDomComponent, [{
-    key: '_mountChildren',
-    value: function _mountChildren(children) {
-      var result = '';
-      for (var index in children) {
-        var child = children[index];
-        var childrenComponent = instantiateReactComponent(child);
-        result += childrenComponent.mountComponent(index);
-      }
-      return result;
-    }
-  }, {
-    key: 'mountComponent',
-    value: function mountComponent(rootID) {
-      this._rootID = rootID;
-      if (typeof this._element.type !== 'string') {
-        throw new Error('DOMComponent\'s Element.type must be string');
-      }
-
-      var ret = '<' + this._tag + ' ';
-      var props = this._element.props;
-      for (var propsName in props) {
-        if (propsName === 'children') {
-          continue;
-        }
-        var propsValue = props[propsName];
-        ret += propsName + '=' + propsValue;
-      }
-      ret += '>';
-
-      var tagContent = '';
-      if (props.children) {
-        tagContent = this._mountChildren(props.children);
-      }
-      ret += tagContent;
-      ret += '</' + this._tag + '>';
-      return ret;
-    }
-  }]);
-  return ReactDomComponent;
-}();
-
-var ReactCompositeComponent = function () {
-  function ReactCompositeComponent(element) {
-    classCallCheck(this, ReactCompositeComponent);
-
-    this._element = element;
-    this._rootId = 0;
-    this._instance = null;
-
-    this._updateBatchNumber = null;
-    this._pendingStateQueue = null;
-    this._pendingCallback = null;
-  }
-
-  createClass(ReactCompositeComponent, [{
-    key: 'mountComponent',
-    value: function mountComponent(rootID) {
-      this._rootId = rootID;
-      if (typeof this._element.type !== 'function') {
-        throw new Error('CompositeComponent\'s Element.type must be function');
-      }
-
-      var Component = this._element.type;
-      var props = this._element.props;
-      var ins = new Component(props);
-
-      ins._reactInternalInstance = this;
-      this._instance = ins;
-
-      var initialState = ins.state;
-      if (initialState === undefined) {
-        initialState = ins.state = null;
-      }
-
-      var markup = this._initialMount();
-      return markup;
-    }
-  }, {
-    key: 'updateComponent',
-    value: function updateComponent() {
-      console.log('update');
-      var ins = this._instance;
-
-      if (this._pendingStateQueue) {
-        ins.state = this._processPendingState();
-      }
-    }
-  }, {
-    key: '_initialMount',
-    value: function _initialMount() {
-      var ins = this._instance;
-
-      if (ins.componentWillMount) {
-        ins.componentWillMount();
-
-        if (this._pendingStateQueue) {
-          ins.state = this._processPendingState();
-        }
-      }
-
-      var renderedElement = ins.render();
-      var renderedComponent = instantiateReactComponent(renderedElement);
-      var markup = renderedComponent.mountComponent(this.rootID);
-
-      if (ins.componentDidMount) {
-        ins.componentDidMount();
-
-        if (this._pendingStateQueue) {
-          ins.state = this._processPendingState();
-        }
-      }
-      ins.updater.resetBatchingStrategy();
-
-      return markup;
-    }
-  }, {
-    key: '_processPendingState',
-    value: function _processPendingState() {
-      var ins = this._instance;
-      var queue = this._pendingStateQueue;
-      this._pendingStateQueue = null;
-
-      if (!queue) {
-        return ins.state;
-      }
-
-      var nextState = ins.state;
-      console.log(nextState);
-      for (var i = 0; i < queue.length; i++) {
-        var partial = queue[i];
-        console.log(partial);
-        Object.assign(nextState, partial);
-      }
-
-      return nextState;
-    }
-  }]);
-  return ReactCompositeComponent;
-}();
-
-function instantiateReactComponent(element) {
-  var instance = null;
-  if (element === null || element === false) {
-    instance = new ReactDOMEmptyComponent();
-  }
-
-  if (typeof element === 'string' || typeof element === 'number') {
-    instance = new ReactDOMTextComponent(element);
-  }
-
-  if ((typeof element === 'undefined' ? 'undefined' : _typeof(element)) === 'object') {
-    var type = element.type;
-    if (typeof type === 'string') {
-      instance = new ReactDomComponent(element);
-    } else if (typeof type === 'function') {
-      instance = new ReactCompositeComponent(element);
-    }
-  }
-  return instance;
-}
-
-function render(element, container) {
-  var rootID = 0;
-  var mainComponent = instantiateReactComponent(element);
-  var containerContent = mainComponent.mountComponent(rootID);
-
-  container.innerHTML = containerContent;
-}
+var render = ReactDOM.render;
+var createElement = ReactElement.createElement;
 
 var React = {
   render: render,

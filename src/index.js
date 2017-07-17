@@ -1,6 +1,9 @@
-import { createElement } from './element'
+import ReactDOM from './dom'
+import ReactElement from './element'
 import { ReactClassComponent } from './component'
-import { render } from './dom'
+
+const render = ReactDOM.render
+const createElement = ReactElement.createElement
 
 const React = {
   render,

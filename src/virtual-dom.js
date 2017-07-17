@@ -1,6 +1,6 @@
 class ReactDOMEmptyComponent {
   constructor() {
-    this._element = null
+    this._currentElement = null
   }
 
   mountComponent() {
@@ -10,7 +10,7 @@ class ReactDOMEmptyComponent {
 
 class ReactDOMTextComponent {
   constructor(text) {
-    this._element = text
+    this._currentElement = text
     this._stringText = '' + text
     this._rootID = 0
   }
@@ -25,7 +25,7 @@ class ReactDomComponent {
   constructor(element) {
     let tag = element.type
 
-    this._element = element
+    this._currentElement = element
     this._tag = tag.toLowerCase()
     this._rootID = 0
   }
@@ -42,12 +42,12 @@ class ReactDomComponent {
 
   mountComponent(rootID) {
     this._rootID = rootID
-    if (typeof this._element.type !== 'string') {
+    if (typeof this._currentElement.type !== 'string') {
       throw new Error('DOMComponent\'s Element.type must be string')
     }
 
     let ret = `<${this._tag} `
-    let props = this._element.props
+    let props = this._currentElement.props
     for (var propsName in props) {
       if (propsName === 'children') {
         continue
@@ -69,69 +69,62 @@ class ReactDomComponent {
 
 class ReactCompositeComponent {
   constructor(element) {
-    this._element = element
-    this._rootId = 0
+    this._currentElement = element
+    this._rootNodeId = 0
     this._instance = null
+    this._hostParent = null
+    this._context = null
 
+    this._renderedComponent = null
     this._updateBatchNumber = null
     this._pendingStateQueue = null
-    this._pendingCallback = null
+    this._pendingCallbacks = null
   }
 
-  mountComponent(rootID) {
-    this._rootId = rootID
-    if (typeof this._element.type !== 'function') {
-      throw new Error('CompositeComponent\'s Element.type must be function')
-    }
+  mountComponent(hostParent, context) {
+    this._context = context
+    this._hostParent = hostParent
 
-    const Component = this._element.type
-    const props = this._element.props
-    const ins = new Component(props)
+    const Component = this._currentElement.type
+    const publicProps = this._currentElement.props
+    const publicContext = this._processContext(context)
+    const ins = new Component(publicProps, publicContext)
 
-    ins._reactInternalInstance = this
+    ins.props = publicProps
+    ins.context = publicContext
+    ins.refs = {}
+
     this._instance = ins
+    ins._reactInternalInstance = this
 
     let initialState = ins.state
     if (initialState === undefined) {
-      initialState = ins.state = null
+      ins.state = initialState = null
     }
 
-    const markup = this._initialMount()
+    const markup = this._initialMount(hostParent, context)
     return markup
   }
 
   updateComponent() {
-    console.log('update')
-    const ins = this._instance
-
-    if (this._pendingStateQueue) {
-      ins.state = this._processPendingState()
-    }
   }
 
-  _initialMount() {
+  _initialMount(hostParent, context) {
     const ins = this._instance
 
     if (ins.componentWillMount) {
       ins.componentWillMount()
 
       if (this._pendingStateQueue) {
-        ins.state = this._processPendingState()
+        ins.state = this._processPendingState(ins.props, ins.context)
       }
     }
 
     const renderedElement = ins.render()
     const renderedComponent = instantiateReactComponent(renderedElement)
-    const markup = renderedComponent.mountComponent(this.rootID)
 
-    if (ins.componentDidMount) {
-      ins.componentDidMount()
-
-      if (this._pendingStateQueue) {
-        ins.state = this._processPendingState()
-      }
-    }
-    ins.updater.resetBatchingStrategy()
+    this._renderedComponent = renderedComponent
+    const markup = renderedComponent.mountComponent(hostParent, this._processChildContext(context))
 
     return markup
   }
@@ -146,14 +139,38 @@ class ReactCompositeComponent {
     }
 
     const nextState = ins.state
-      console.log(nextState)
     for (let i = 0; i < queue.length; i++) {
       const partial = queue[i]
-      console.log(partial)
       Object.assign(nextState, partial)
     }
 
     return nextState
+  }
+
+  _processContext(context) {
+    const Component = this._currentElement.type
+    const contextTypes = Component.contextTypes
+    if (!contextTypes) {
+      return {}
+    }
+    const maskedContext = {}
+    for (let name in contextTypes) {
+      maskedContext[name] = context[name]
+    }
+    return maskedContext
+  }
+
+  _processChildContext(currentContext) {
+    const ins = this._instance
+    let childContext = null
+
+    if (ins.getChildContext) {
+      childContext = ins.getChildContext()
+    }
+    if (childContext) {
+      return Object.assign({}, currentContext, childContext)
+    }
+    return currentContext
   }
 }
 
@@ -162,7 +179,7 @@ export function instantiateReactComponent(element) {
   if (element === null || element === false) {
     instance = new ReactDOMEmptyComponent()
   }
-  
+
   if (typeof element === 'string' || typeof element === 'number') {
     instance = new ReactDOMTextComponent(element)
   }

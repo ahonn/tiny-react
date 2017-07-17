@@ -10,7 +10,6 @@ export const updater = {
       (internalInstance._pendingStateQueue = [])
 
     queue.push(partialState)
-    console.log(queue)
     enqueueUpdate(internalInstance)
   },
 
@@ -29,7 +28,6 @@ const batchingStrategy = {
     if (alreadyBatchingUpdates) {
       callback(component)
     } else {
-      console.log('runBatchUpdates')
       this.runBatchUpdates()
     }
   },
@@ -38,14 +36,12 @@ const batchingStrategy = {
     const len = dirtyComponents.length
     for (let i = 0; i < len; i++) {
       const component = dirtyComponents[i]
-      console.log(component.updateComponent)
       component.updateComponent()
     }
   }
 }
 
 function enqueueUpdate(component) {
-  console.log(batchingStrategy.isBatchingUpdates)
   if (!batchingStrategy.isBatchingUpdates) {
     batchingStrategy.batchedUpdates(enqueueUpdate, component)
     return

@@ -14,7 +14,7 @@ class ReactElement {
   }
 }
 
-export function createElement(type, config, ...children) {
+ReactElement.createElement = function (type, config, ...children) {
   let props = {}
   let key = null
   let ref = null
@@ -47,3 +47,5 @@ export function createElement(type, config, ...children) {
 
   return new ReactElement(type, props, key, ref)
 }
+
+export default ReactElement
