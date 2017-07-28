@@ -1,4 +1,5 @@
-var babel =  require('rollup-plugin-babel')
+const babel =  require('rollup-plugin-babel')
+const includePaths = require('rollup-plugin-includepaths')
 
 export default {
   entry: 'src/index.js',
@@ -6,7 +7,8 @@ export default {
     babel({
       sourceMap: true,
       exclude: 'node_modules/**'
-    })
+    }),
+    includePaths()
   ],
   targets: [
     {

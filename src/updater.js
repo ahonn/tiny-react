@@ -12,10 +12,6 @@ export const updater = {
     queue.push(partialState)
     enqueueUpdate(internalInstance)
   },
-
-  resetBatchingStrategy: function () {
-    batchingStrategy.isBatchingUpdates = false
-  }
 }
 
 const batchingStrategy = {

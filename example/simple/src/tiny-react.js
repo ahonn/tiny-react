@@ -45,11 +45,20 @@ var ReactDOMEmptyComponent = function () {
     classCallCheck(this, ReactDOMEmptyComponent);
 
     this._currentElement = null;
+    this._hostNode = null;
+    this._hostParent = null;
+    this._hostContainerInfo = null;
+    this._domId = 0;
   }
 
   createClass(ReactDOMEmptyComponent, [{
     key: 'mountComponent',
-    value: function mountComponent() {
+    value: function mountComponent(hostParent, hostContainerInfo, context) {
+      this._context = context;
+      this._hostParent = hostParent;
+      this._hostContainerInfo = hostContainerInfo;
+      this._domId = hostContainerInfo._idCounter++;
+
       return '';
     }
   }]);
@@ -62,18 +71,30 @@ var ReactDOMTextComponent = function () {
 
     this._currentElement = text;
     this._stringText = '' + text;
-    this._rootID = 0;
+    this._hostNode = null;
+    this._hostParent = null;
+
+    this.domID = 0;
+    this._mountIndex = 0;
   }
 
   createClass(ReactDOMTextComponent, [{
     key: 'mountComponent',
-    value: function mountComponent(rootID) {
-      this._rootID = rootID;
-      return this._stringText;
+    value: function mountComponent(hostParent, hostContainerInfo) {
+      var domID = hostContainerInfo._idCounter++;
+
+      this._domID = domID;
+      this._hostParent = hostParent;
+
+      var openingValue = '<!-- react-text: ' + domID + ' -->';
+      var closingValue = '<!-- /reatc-text -->';
+      return openingValue + this._stringText + closingValue;
     }
   }]);
   return ReactDOMTextComponent;
 }();
+
+var globalIdCounter = 1;
 
 var ReactDomComponent = function () {
   function ReactDomComponent(element) {
@@ -83,27 +104,38 @@ var ReactDomComponent = function () {
 
     this._currentElement = element;
     this._tag = tag.toLowerCase();
-    this._rootID = 0;
+    this._domID = 0;
+    this._rootNodeID = 0;
+    this._hostParent = null;
+    this._hostContainerInfo = null;
+    this._renderedChildren = null;
   }
 
   createClass(ReactDomComponent, [{
     key: '_mountChildren',
-    value: function _mountChildren(children) {
-      var result = '';
-      for (var index in children) {
-        var child = children[index];
-        var childrenComponent = instantiateReactComponent(child);
-        result += childrenComponent.mountComponent(index);
+    value: function _mountChildren(props, context) {
+      var innerHTML = props.dangerouslySetInnerHTML;
+      if (innerHTML == null) {
+        innerHTML = '';
+        this._renderedChildren = [];
+        var children = props.children;
+        for (var index in children) {
+          var child = children[index];
+          var childrenComponent = instantiateReactComponent(child);
+          this._renderedChildren.push(childrenComponent);
+          innerHTML += childrenComponent.mountComponent(this._hostParent, this._hostContainerInfo, context);
+        }
       }
-      return result;
+
+      return innerHTML;
     }
   }, {
     key: 'mountComponent',
-    value: function mountComponent(rootID) {
-      this._rootID = rootID;
-      if (typeof this._currentElement.type !== 'string') {
-        throw new Error('DOMComponent\'s Element.type must be string');
-      }
+    value: function mountComponent(hostParent, hostContainerInfo, context) {
+      this._hostParent = hostParent;
+      this._hostContainerInfo = hostContainerInfo;
+      this._domID = hostContainerInfo._idCounter++;
+      this._rootNodeID = globalIdCounter++;
 
       var ret = '<' + this._tag + ' ';
       var props = this._currentElement.props;
@@ -118,7 +150,7 @@ var ReactDomComponent = function () {
 
       var tagContent = '';
       if (props.children) {
-        tagContent = this._mountChildren(props.children);
+        tagContent = this._mountChildren(props, context);
       }
       ret += tagContent;
       ret += '</' + this._tag + '>';
@@ -136,6 +168,7 @@ var ReactCompositeComponent = function () {
     this._rootNodeId = 0;
     this._instance = null;
     this._hostParent = null;
+    this._hostContainerInfo = null;
     this._context = null;
 
     this._renderedComponent = null;
@@ -146,9 +179,10 @@ var ReactCompositeComponent = function () {
 
   createClass(ReactCompositeComponent, [{
     key: 'mountComponent',
-    value: function mountComponent(hostParent, context) {
+    value: function mountComponent(hostParent, hostContainerInfo, context) {
       this._context = context;
       this._hostParent = hostParent;
+      this._hostContainerInfo = hostContainerInfo;
 
       var Component = this._currentElement.type;
       var publicProps = this._currentElement.props;
@@ -167,7 +201,7 @@ var ReactCompositeComponent = function () {
         ins.state = initialState = null;
       }
 
-      var markup = this._initialMount(hostParent, context);
+      var markup = this._initialMount(hostParent, hostContainerInfo, context);
       return markup;
     }
   }, {
@@ -175,7 +209,7 @@ var ReactCompositeComponent = function () {
     value: function updateComponent() {}
   }, {
     key: '_initialMount',
-    value: function _initialMount(hostParent, context) {
+    value: function _initialMount(hostParent, hostContainerInfo, context) {
       var ins = this._instance;
 
       if (ins.componentWillMount) {
@@ -190,7 +224,8 @@ var ReactCompositeComponent = function () {
       var renderedComponent = instantiateReactComponent(renderedElement);
 
       this._renderedComponent = renderedComponent;
-      var markup = renderedComponent.mountComponent(hostParent, this._processChildContext(context));
+      var childContext = this._processChildContext(context);
+      var markup = renderedComponent.mountComponent(hostParent, hostContainerInfo, childContext);
 
       return markup;
     }
@@ -269,7 +304,8 @@ function instantiateReactComponent(element) {
 var ReactDOM = {
   render: function render(nextElement, container, callback) {
     var componentInstance = instantiateReactComponent(nextElement);
-    var markup = componentInstance.mountComponent();
+    var containerInfo = _createContainerInfo(componentInstance, container);
+    var markup = componentInstance.mountComponent(null, containerInfo, {});
 
     container.innerHTML = markup;
 
@@ -278,6 +314,17 @@ var ReactDOM = {
     }
   }
 };
+
+function _createContainerInfo(topLevelWarapper, node) {
+  var info = {
+    _topLevelWarapper: topLevelWarapper,
+    _idCounter: 1,
+    _ownerDocument: node ? node.nodeType === 9 ? node : node.ownerDocument : null,
+    _node: node
+  };
+
+  return info;
+}
 
 var RESERVED_PROPS = {
   ref: true,
@@ -345,10 +392,6 @@ var updater = {
 
     queue.push(partialState);
     enqueueUpdate(internalInstance);
-  },
-
-  resetBatchingStrategy: function resetBatchingStrategy() {
-    batchingStrategy.isBatchingUpdates = false;
   }
 };
 

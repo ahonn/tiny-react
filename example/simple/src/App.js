@@ -1,6 +1,20 @@
 import React, { Component } from './tiny-react'
 // import React, { Component } from 'react'
 
+class Hello extends Component {
+  constructor(props) {
+    super(props)
+  }
+
+  render() {
+    return (
+      <div>
+        <span>Hello</span>
+      </div>
+    )
+  }
+}
+
 class App extends Component {
   constructor(props) {
     super(props)
@@ -13,7 +27,7 @@ class App extends Component {
   render() {
     return (
       <div>
-        <span>{this.state.val}</span>
+        <Hello />
       </div>
     )
   }
