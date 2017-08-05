@@ -15,8 +15,7 @@ class ReactDOMTextComponent {
     this._rootID = 0
   }
 
-  mountComponent(rootID) {
-    this._rootID = rootID
+  mountComponent() {
     return this._stringText
   }
 }
@@ -27,7 +26,6 @@ class ReactDomComponent {
 
     this._element = element
     this._tag = tag.toLowerCase()
-    this._rootID = 0
   }
 
   _mountChildren(children) {
@@ -35,17 +33,12 @@ class ReactDomComponent {
     for (let index in children) {
       const child = children[index]
       const childrenComponent = instantiateReactComponent(child)
-      result += childrenComponent.mountComponent(index)
+      result += childrenComponent.mountComponent()
     }
     return result
   }
 
-  mountComponent(rootID) {
-    this._rootID = rootID
-    if (typeof this._element.type !== 'string') {
-      throw new Error('DOMComponent\'s Element.type must be string')
-    }
-
+  mountComponent() {
     let ret = `<${this._tag} `
     let props = this._element.props
     for (var propsName in props) {
@@ -73,19 +66,14 @@ class ReactCompositeComponent {
     this._rootId = 0
   }
 
-  mountComponent(rootID) {
-    this._rootId = rootID
-    if (typeof this._element.type !== 'function') {
-      throw new Error('CompositeComponent\'s Element.type must be function')
-    }
-
+  mountComponent() {
     const Component = this._element.type
     const props = this._element.props
     const instance = new Component(props)
 
     const renderedElement = instance.render()
     const renderedComponent = instantiateReactComponent(renderedElement)
-    const renderedResult = renderedComponent.mountComponent(rootID)
+    const renderedResult = renderedComponent.mountComponent()
     return renderedResult
   }
 }
